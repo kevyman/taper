@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Medrol afbouwschema · kalender</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#faf6f0;
+    --panel:#fffdfa;
+    --ink:#2c2925;
+    --ink-soft:#6f675e;
+    --line:#e7dfd4;
+    --line-strong:#d8cdbd;
+    --accent:#4f9a8f;
+    --accent-dark:#2d6a60;
+    --accent-soft:#e3f0ed;
+    --sand:#f0e6d6;
+    --rest:#f3efe9;
+    --shadow:0 1px 2px rgba(60,48,32,.05), 0 6px 18px rgba(60,48,32,.06);
+    --shadow-lift:0 4px 10px rgba(60,48,32,.10), 0 14px 30px rgba(60,48,32,.10);
+    --radius:16px;
+    /* Atkinson Hyperlegible: designed for low-vision readers (Braille Institute) */
+    --font-display:"Atkinson Hyperlegible", "Trebuchet MS", Verdana, Arial, sans-serif;
+    --font-body:"Atkinson Hyperlegible", "Trebuchet MS", Verdana, Arial, sans-serif;
+  }
+
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:var(--font-body);
+    font-size:16px;
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 500px at 100% -10%, #fff7ec 0%, transparent 60%),
+      radial-gradient(900px 400px at -10% 0%, #f3efe6 0%, transparent 55%),
+      var(--bg);
+    line-height:1.5;
+    padding:0 0 60px;
+  }
+
+  /* ---------- header ---------- */
+  .topbar{
+    background:linear-gradient(180deg,#fffdfa 0%, #fbf7f1 100%);
+    border-bottom:1px solid var(--line);
+    padding:22px 26px 18px;
+  }
+  .topbar-inner{max-width:1180px;margin:0 auto}
+  .brand{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .brand h1{
+    font-family:var(--font-display);
+    font-weight:600;
+    font-size:30px;
+    letter-spacing:-.01em;
+    line-height:1;
+  }
+  .brand .pilldot{width:14px;height:14px;border-radius:50%;background:var(--accent);display:inline-block;transform:translateY(1px)}
+  .brand .sub{color:var(--ink-soft);font-size:13.5px}
+
+  /* ---------- controls ---------- */
+  .controls{
+    position:sticky;top:0;z-index:20;
+    background:rgba(251,247,241,.92);
+    backdrop-filter:saturate(1.1) blur(6px);
+    border-bottom:1px solid var(--line);
+    padding:12px 26px;
+  }
+  .controls-inner{
+    max-width:1180px;margin:0 auto;
+    display:flex;gap:16px 22px;align-items:flex-end;flex-wrap:wrap;
+  }
+  .field{display:flex;flex-direction:column;gap:5px}
+  .field label{font-size:11px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-soft)}
+  select,input[type=date],input[type=number],input[type=text]{
+    font-family:var(--font-body);font-size:14px;color:var(--ink);
+    background:var(--panel);border:1px solid var(--line-strong);border-radius:10px;
+    padding:8px 11px;outline:none;transition:border-color .15s, box-shadow .15s;
+  }
+  select:focus,input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  select.scheme{min-width:300px;font-weight:500}
+
+  .seg{display:inline-flex;background:var(--panel);border:1px solid var(--line-strong);border-radius:10px;padding:3px;gap:3px}
+  .seg button{
+    font-family:var(--font-body);font-size:13px;font-weight:500;color:var(--ink-soft);
+    background:transparent;border:none;border-radius:7px;padding:6px 13px;cursor:pointer;transition:all .15s;
+  }
+  .seg button.active{background:var(--accent);color:#fff;box-shadow:0 1px 3px rgba(79,154,143,.4)}
+  .seg button:not(.active):hover{color:var(--ink);background:var(--sand)}
+
+  .btn{
+    font-family:var(--font-body);font-size:13.5px;font-weight:500;
+    background:var(--panel);color:var(--ink);border:1px solid var(--line-strong);border-radius:10px;
+    padding:8px 15px;cursor:pointer;transition:all .15s;
+  }
+  .btn:hover{border-color:var(--accent);color:var(--accent);transform:translateY(-1px)}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.primary:hover{background:#458a80;color:#fff;transform:translateY(-1px)}
+  .spacer{flex:1 1 auto}
+
+  /* ---------- layout ---------- */
+  .wrap{max-width:1180px;margin:0 auto;padding:22px 26px 0}
+  .layout{display:grid;grid-template-columns:330px 1fr;gap:26px;align-items:start}
+  @media (max-width:900px){
+    .layout{grid-template-columns:1fr}
+    /* single column on small screens: let the builder flow with the page */
+    .builder-col{position:static;max-height:none;overflow:visible;padding-right:0}
+  }
+
+  /* ---------- builder ---------- */
+  /* The whole left column is the sticky, scrollable region: scrolling anywhere
+     beside the calendar moves the builder. The scrollbar lives in this wrapper
+     (in the gutter, outside the card) so it never clips the card's rounded
+     corners. No overscroll-behavior:contain — so once the builder hits its top
+     or bottom, the wheel naturally chains to the page (reach header / footer). */
+  .builder-col{
+    position:sticky;top:74px;
+    max-height:calc(100vh - 74px - 22px);
+    overflow-y:auto;padding-right:6px;
+  }
+  .builder-col::-webkit-scrollbar{width:9px}
+  .builder-col::-webkit-scrollbar-thumb{background:var(--line-strong);border-radius:8px;border:2px solid transparent;background-clip:padding-box}
+  .builder-col::-webkit-scrollbar-thumb:hover{background:#c4b8a4;background-clip:padding-box}
+  .builder-col{scrollbar-width:thin;scrollbar-color:var(--line-strong) transparent}
+  .builder{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:18px;
+  }
+  .builder h2{font-family:var(--font-display);font-weight:600;font-size:18px;margin-bottom:3px}
+  .builder .hint{font-size:12px;color:var(--ink-soft);margin-bottom:14px}
+  .phase{
+    border:1px solid var(--line);border-radius:12px;padding:11px 11px 12px;margin-bottom:10px;
+    background:linear-gradient(180deg,#fffefb,#fdfaf4);
+  }
+  .phase-top{display:flex;align-items:center;gap:8px;margin-bottom:9px}
+  .phase-num{
+    font-family:var(--font-display);font-weight:600;font-size:13px;color:#fff;background:var(--accent);
+    width:22px;height:22px;border-radius:50%;display:grid;place-items:center;flex:none;
+  }
+  .phase-top .grow{flex:1}
+  .iconbtn{
+    border:1px solid var(--line-strong);background:#fff;border-radius:8px;width:26px;height:26px;
+    cursor:pointer;color:var(--ink-soft);font-size:14px;line-height:1;display:grid;place-items:center;transition:all .12s;
+  }
+  .iconbtn:hover{color:var(--accent);border-color:var(--accent)}
+  .iconbtn:disabled{opacity:.3;cursor:default}
+  .phase-row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+  .phase-row .field{gap:3px}
+  .phase-row label{font-size:10px}
+  .phase-row select,.phase-row input{padding:6px 8px;font-size:13px}
+  .phase-row input[type=number]{width:62px}
+  .dur-wrap{display:flex;gap:6px;align-items:flex-end}
+  .maint-row{display:flex;align-items:center;gap:7px;margin-top:9px;font-size:12.5px;color:var(--ink-soft)}
+  .maint-row input{accent-color:var(--accent);width:15px;height:15px}
+  .builder-actions{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+  .savednote{font-size:12px;color:var(--accent-dark);background:var(--accent-soft);
+    border:1px solid #cfe6e0;border-radius:9px;padding:8px 10px;margin-top:9px;line-height:1.4}
+
+  /* ---------- calendar ---------- */
+  .out{min-height:300px}
+  .month{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:16px 16px 18px;margin-bottom:22px;
+    opacity:0;transform:translateY(8px);animation:rise .5s ease forwards;
+  }
+  @keyframes rise{to{opacity:1;transform:none}}
+  .month h3{
+    font-family:var(--font-display);font-weight:600;font-size:21px;text-transform:capitalize;
+    margin-bottom:12px;display:flex;align-items:baseline;gap:8px;
+  }
+  .month h3 .yr{color:var(--ink-soft);font-weight:400;font-size:16px}
+  .dow{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:8px}
+  .dow span{font-size:12.5px;font-weight:700;letter-spacing:.01em;color:#3a352e;text-align:center}
+  .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+
+  .cell{
+    border:1px solid var(--line);border-radius:13px;background:#fffdf9;
+    min-height:104px;padding:7px 7px 9px;display:flex;flex-direction:column;align-items:center;
+    position:relative;transition:transform .12s, box-shadow .12s;
+  }
+  .cell:not(.empty):hover{transform:translateY(-2px);box-shadow:var(--shadow-lift);z-index:2}
+  .cell.empty{background:transparent;border-color:transparent;min-height:104px}
+  .cell.empty .dnum{background:transparent;color:#cfc6b8}
+  /* day number sits in a small tab anchored to the top-left corner */
+  .dnum{position:absolute;top:0;left:0;font-size:12.5px;font-weight:700;color:#3f3a33;line-height:1;
+    background:#efe9df;padding:3px 8px 4px;border-radius:13px 0 9px 0}
+  .chip{
+    position:absolute;top:6px;right:7px;font-size:9px;font-weight:600;letter-spacing:.02em;
+    padding:1px 6px;border-radius:20px;background:var(--sand);color:#8a7a5e;
+  }
+  .dose{display:flex;flex-direction:column;align-items:center;margin-top:18px}
+  .cell .mg{font-family:var(--font-display);font-weight:600;font-size:25px;line-height:1}
+  .cell .mgunit{font-size:10px;color:var(--ink-soft);margin-top:1px;margin-bottom:5px;letter-spacing:.03em}
+  .pills{display:flex;gap:3px;align-items:flex-end;justify-content:center;flex-wrap:wrap;min-height:34px}
+  .pills svg{display:block}
+
+  /* pill colours — bright primaries, luminance-OPPOSITE so they look good in
+     colour AND stay high-contrast in B&W: 32 = blue (prints dark), 4 = yellow
+     (prints light). White number on blue, dark number on yellow. */
+  .pt{font-family:var(--font-body);font-weight:700}
+  .fl-32{fill:#1f63c4}  .fl-16{fill:#8fb4d9}  .fl-4{fill:#ffd21f}
+  .st-32{stroke:#123e80} .st-16{stroke:#3d6ea3} .st-4{stroke:#8a6a00}
+  .tx-32{fill:#ffffff} .tx-16{fill:#14304c} .tx-4{fill:#1a1a1a}
+
+  .cell.pstart{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent-soft)}
+
+  /* ---- alternate-day signifier ----
+     The whole alternate-day stretch gets a soft zone tint; the day the schedule
+     switches to every-other-day gets a bold banner with a big arrow. The banner
+     uses a dark teal + white text, so it reads clearly in colour AND high-contrast
+     grey when printed black-and-white. */
+  .cell.altday{background:#edf6f3}
+  .cell.altday.rest{background:#e9f1ee}
+  .cell.altstart{border-color:var(--accent-dark);border-width:2px;box-shadow:0 0 0 2px var(--accent-soft);
+    overflow:hidden;justify-content:flex-start;padding-top:40px}
+  .cell.altstart .chip{display:none}
+  .cell.altstart .dose{margin-top:3px}
+  .altbanner{
+    position:absolute;top:0;left:0;right:0;z-index:2;
+    display:flex;flex-direction:column;align-items:center;gap:0;
+    background:var(--accent-dark);color:#fff;border-radius:12px 12px 0 0;
+    padding:3px 6px 4px;line-height:1;overflow:hidden;
+  }
+  .altbanner .abtop{display:flex;align-items:center;gap:6px}
+  .altbanner .bnum{font-size:13px;font-weight:700}
+  .altbanner .ar{font-size:18px;line-height:1;font-weight:700}
+  .altbanner .albl{font-size:9px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;margin-top:2px;white-space:nowrap}
+
+  .ptag{
+    position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);white-space:nowrap;
+    font-size:9.5px;font-weight:600;color:#fff;background:var(--accent);
+    padding:2px 8px;border-radius:20px;box-shadow:0 1px 3px rgba(79,154,143,.4);
+  }
+  .cell.rest{background:var(--rest);border-style:dashed;border-color:var(--line-strong)}
+  .cell.rest .mg{color:#b9b0a2;font-size:22px}
+  .rest-pill{width:24px;height:24px;border:2px dashed #cabfab;border-radius:50%;margin-top:2px}
+
+  /* ---------- list view ---------- */
+  .listbox{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+  .phead{
+    background:linear-gradient(90deg,var(--accent-soft),#f6f1e8);
+    padding:9px 18px;font-size:13px;font-weight:600;color:#3a6e66;
+    border-top:1px solid var(--line);display:flex;align-items:center;gap:9px;
+  }
+  .phead:first-child{border-top:none}
+  .phead .pno{background:var(--accent);color:#fff;width:20px;height:20px;border-radius:50%;display:grid;place-items:center;font-size:11px}
+  .phead.altfirst{background:var(--accent-dark);color:#fff;font-size:14px}
+  .phead.altfirst .pno{background:#fff;color:var(--accent-dark)}
+  .phead .ar{font-size:18px;font-weight:700;margin-right:2px}
+  .lrow{display:grid;grid-template-columns:140px 78px 1fr;align-items:center;gap:14px;padding:7px 18px;border-top:1px solid #f1ece3}
+  .lrow:hover{background:#fdfbf6}
+  .lrow .ldate{font-size:13.5px;color:var(--ink)}
+  .lrow .ldate .wd{color:var(--ink-soft);text-transform:capitalize;margin-right:5px}
+  .lrow .lmg{font-family:var(--font-display);font-weight:600;font-size:18px}
+  .lrow.lrest .lmg{color:#b9b0a2}
+  .lrow .lpills{display:flex;gap:4px;align-items:flex-end;flex-wrap:wrap}
+  .lrow .restlbl{font-size:12px;color:#b0a695;font-style:italic}
+
+  /* ---------- slim clinical footer ---------- */
+  .footer{
+    background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+    box-shadow:var(--shadow);padding:12px 20px;margin-top:10px;
+    display:flex;gap:28px;align-items:center;flex-wrap:wrap;font-size:13.5px;color:var(--ink-soft);
+  }
+  .footer .mail{margin-left:auto;color:var(--accent);font-weight:700}
+
+  .scheme-caption{font-family:var(--font-display);font-size:18px;font-weight:600;margin:2px 0 16px;display:flex;align-items:center;gap:9px}
+  .scheme-caption .tag{font-family:var(--font-body);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);background:var(--accent-soft);padding:3px 9px;border-radius:20px}
+  /* editable document title */
+  .title-edit{outline:none;border-radius:7px;padding:1px 7px;margin-left:-7px;border:1px dashed transparent;cursor:text;transition:background .12s,border-color .12s}
+  .title-edit:hover{border-color:var(--line-strong);background:#fffdf9}
+  .title-edit:focus{border-color:var(--accent);background:#fff;box-shadow:0 0 0 3px var(--accent-soft)}
+  .title-reset{border:1px solid var(--line-strong);background:#fff;color:var(--ink-soft);border-radius:8px;
+    width:26px;height:26px;cursor:pointer;font-size:14px;line-height:1;display:none;place-items:center;flex:none}
+  .title-reset:hover{color:var(--accent);border-color:var(--accent)}
+  .title-reset.show{display:grid}
+
+  /* footer-edit panel in the builder */
+  .foot-edit{margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+  .foot-edit h2{font-family:var(--font-display);font-weight:600;font-size:16px;margin-bottom:9px}
+  .foot-edit .field{margin-bottom:10px}
+  textarea{font-family:var(--font-body);font-size:13px;color:var(--ink);line-height:1.4;resize:vertical;
+    background:var(--panel);border:1px solid var(--line-strong);border-radius:10px;padding:8px 11px;outline:none;width:100%;transition:border-color .15s,box-shadow .15s}
+  textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+  .foot-edit input{width:100%}
+
+  /* ---------- print: low-vision optimised, 2 months/sheet, 3 sheets ----------
+     Large type (large-print standard), high contrast, generous spacing.
+     Pill colours are luminance-distinct so the same file prints well in
+     colour AND black-and-white (no grayscale override needed). */
+  @media print{
+    @page{size:A4 portrait;margin:8mm}
+    body{background:#fff;padding:0;color:#000;font-size:12px}
+    .controls,.builder-col,.topbar{display:none !important}
+    .layout{display:block}
+    .wrap{padding:0;max-width:none}
+    main{display:block}
+    *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+
+    /* title */
+    .scheme-caption{font-weight:700;font-size:20px;color:#000;margin:0 0 3mm}
+    .scheme-caption .tag{background:#e9e9e9;color:#111;font-size:13px;font-weight:700;padding:2px 10px}
+    .title-edit{border:none !important;background:none !important;box-shadow:none !important;padding:0;margin:0}
+    .title-reset{display:none !important}
+
+    /* month blocks: 2 per page */
+    #out{display:block}
+    .month{box-shadow:none;border:1.5px solid #8f8f8f;border-radius:8px;
+      margin:0 0 3mm;padding:2.5mm 3.5mm 2mm;animation:none;opacity:1;transform:none;break-inside:avoid}
+    .month:nth-of-type(2n):not(:last-of-type){break-after:page}
+    .month h3{font-size:22px;font-weight:700;color:#000;margin-bottom:1.6mm;padding-bottom:1.2mm;border-bottom:2px solid #c9c9c9}
+    .month h3 .yr{font-size:16px;color:#555}
+    .dow{gap:1.2mm;margin-bottom:1.2mm}
+    .dow span{font-size:12px;font-weight:700;color:#222;text-transform:none}
+
+    /* uniform rows — big cells that fill the page and breathe; large pills */
+    .grid{gap:1.5mm;grid-auto-rows:17.5mm}
+    .cell{min-height:0;border:1.2px solid #aeaeae;border-radius:6px;padding:.8mm 1px;overflow:hidden;
+      display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .cell:hover{transform:none;box-shadow:none}
+    .cell.empty{border:none;background:transparent}
+    .dnum{top:0;left:0;font-size:12px;font-weight:700;color:#333;background:#e8e2d4;
+      padding:1.5px 7px 2.5px;border-radius:6px 0 8px 0}
+    .cell.empty .dnum{background:transparent;color:#bbb}
+    .chip{font-size:9.5px;padding:.3mm 1.8mm;top:.6mm;right:.6mm;background:#e7e7e7;color:#111;border:.5px solid #aeaeae;font-weight:700;border-radius:20px}
+    .dose{flex-direction:row;align-items:baseline;gap:2px;margin:1.4mm 0 0;line-height:1}
+    .cell .mg{font-size:21px;line-height:1;font-weight:700;color:#000}
+    .cell .mgunit{display:inline;font-size:12px;color:#333;margin:0;font-weight:700}
+    .cell .pills{min-height:0;gap:3px;margin-top:1mm;zoom:1.05;flex:1;align-items:center}
+    .cell.pstart{border-color:#000;border-width:1.8px;box-shadow:none}
+    .ptag{display:none}
+
+    /* alternate-day signifier in print (dark grey banner + white text = legible in B&W) */
+    .cell.altday{background:#eef2f1}
+    .cell.altday.rest{background:#e8eceb}
+    /* reserve the full banner height as top padding, then lay the dose number
+       and the pill SIDE BY SIDE below it — that way the pill keeps its full
+       height instead of being squeezed under the number. */
+    .cell.altstart{border:2px solid #000;box-shadow:none;overflow:hidden;
+      flex-direction:row;flex-wrap:nowrap;align-items:center;justify-content:center;gap:4px;padding-top:7mm}
+    .cell.altstart .dose{margin:0}
+    .cell.altstart .mg{font-size:19px}
+    .cell.altstart .mgunit{font-size:10px}
+    .cell.altstart .pills{margin:0;zoom:.72}
+    .altbanner{position:absolute;top:0;left:0;right:0;z-index:2;display:flex;flex-direction:column;align-items:center;
+      gap:0;background:#2f2f2f;color:#fff;border-radius:4px 4px 0 0;padding:.8mm 4px 1mm;line-height:1;overflow:hidden}
+    .altbanner .abtop{display:flex;align-items:center;gap:4px}
+    .altbanner .bnum{font-size:11px;font-weight:700}
+    .altbanner .ar{font-size:14px;line-height:1;font-weight:700}
+    .altbanner .albl{font-size:8px;font-weight:700;letter-spacing:.02em;text-transform:uppercase;margin-top:.6mm;white-space:nowrap}
+    .cell.rest{background:#efefef;border-style:dashed;border-color:#aaa}
+    .cell.rest .mg{color:#777;font-size:20px}
+    .cell.rest .mgunit{color:#777}
+    .rest-pill{display:none}
+
+    /* slim clinical footer */
+    .footer{box-shadow:none;border:1px solid #9a9a9a;border-radius:6px;break-inside:avoid;
+      margin-top:3mm;padding:2mm 4mm;display:flex;gap:18px;align-items:center;flex-wrap:wrap;font-size:11px;color:#000}
+    .footer .mail{margin-left:auto;color:#222;font-weight:700}
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner brand">
+    <span class="pilldot"></span>
+    <h1>Medrol afbouwschema</h1>
+    <span class="sub" id="sub">Kies een schema en een startdatum — de kalender toont elke dag hoeveel u inneemt.</span>
+  </div>
+</header>
+
+<div class="controls">
+  <div class="controls-inner">
+    <div class="field">
+      <label id="lbl-scheme">Schema</label>
+      <select class="scheme" id="schemeSel"></select>
+    </div>
+    <div class="field">
+      <label id="lbl-start">Startdatum</label>
+      <input type="date" id="startDate">
+    </div>
+    <div class="field">
+      <label id="lbl-lang">Taal</label>
+      <div class="seg" id="langSeg">
+        <button data-lang="nl" class="active">NL</button>
+        <button data-lang="en">EN</button>
+        <button data-lang="fr">FR</button>
+      </div>
+    </div>
+    <div class="field">
+      <label id="lbl-view">Weergave</label>
+      <div class="seg" id="viewSeg">
+        <button data-view="grid" class="active" id="btn-grid">Kalender</button>
+        <button data-view="list" id="btn-list">Lijst</button>
+      </div>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn primary" id="printBtn">🖶 <span id="lbl-print">Afdrukken</span></button>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="layout">
+    <aside class="builder-col">
+     <div class="builder">
+      <h2 id="lbl-builder">Schema bewerken</h2>
+      <p class="hint" id="lbl-builderhint">Pas duur, type (dagelijks/alternerend) en dosis per fase aan.</p>
+      <div id="phases"></div>
+      <div class="builder-actions">
+        <button class="btn" id="addPhase">+ <span id="lbl-add">Fase</span></button>
+        <button class="btn" id="resetScheme" title="reset"><span id="lbl-reset">Herstel</span></button>
+        <button class="btn primary" id="savePreset">★ <span id="lbl-save">Bewaar als schema</span></button>
+        <button class="btn" id="delPreset" style="display:none"><span id="lbl-del">Verwijder schema</span></button>
+      </div>
+      <p class="savednote" id="savedNote" style="display:none"></p>
+
+      <div class="foot-edit">
+        <h2 id="lbl-foot">Voettekst</h2>
+        <div class="field">
+          <label id="lbl-footlines">Extra medicatie</label>
+          <textarea id="footLines" rows="3"></textarea>
+        </div>
+        <div class="field">
+          <label id="lbl-footcontact">Contact</label>
+          <input type="text" id="footContact">
+        </div>
+      </div>
+     </div>
+    </aside>
+
+    <main>
+      <div class="scheme-caption">
+        <span id="schemeName" class="title-edit" contenteditable="true" spellcheck="false"></span>
+        <button class="title-reset" id="titleReset" title="">↺</button>
+        <span class="tag" id="schemeRange"></span>
+      </div>
+      <div class="out" id="out"></div>
+      <section class="footer" id="legend"></section>
+    </main>
+  </div>
+</div>
+
+<!-- User-saved schedules live here. The app reads this block on load and writes
+     an updated copy into a downloaded file when you Save. Keep it on one line. -->
+<script type="application/json" id="customSchemes">[]</script>
+
+<script>
+/* ============================================================
+   Medrol tapering calendar — single-file app
+   Layers: (1) schedule model + presets, (2) pill decomposer +
+   drawing, (3) calendar projector + render. See plan file.
+   ============================================================ */
+
+/* ---------- i18n ---------- */
+const I18N = {
+  nl:{ scheme:"Schema", start:"Startdatum", lang:"Taal", view:"Weergave", grid:"Kalender", list:"Lijst",
+    print:"Afdrukken", builder:"Schema bewerken", builderhint:"Pas duur, type en dosis per fase aan.",
+    add:"Fase", reset:"Herstel", perDay:"per dag", everyOther:"om de 2 dagen", day1:"Dag 1", day2:"Dag 2",
+    d1:"dag 1", d2:"dag 2", rest:"rust", mg:"mg", duration:"Duur", days:"dagen", weeks:"weken", months:"maanden",
+    dose:"Dosis", dose1:"Dosis dag 1", dose2:"Dosis dag 2", type:"Type", daily:"dagelijks", alternate:"alternerend",
+    maintenance:"onderhoud — vul aan tot einde", until:"Zo continueren tot aan de controleraadpleging",
+    legendTitle:"Pillen van Medrol", whole:"heel", custom:"Eigen schema (leeg)", phase:"Fase",
+    sub:"Kies een schema en een startdatum — de kalender toont elke dag hoeveel u inneemt.",
+    toAlt:"alternerend schema", to:"→", removeP:"verwijder fase", up:"omhoog", down:"omlaag",
+    perDaySlash:"/dag", footerTitle:"Voettekst (voor de afdruk)", footerLinesLbl:"Extra medicatie (één per lijn)",
+    footerContactLbl:"Contact", resetTitle:"automatische titel", titleHint:"klik om de titel aan te passen",
+    altFrom:"om de 2 dagen",
+    save:"Bewaar als schema", del:"Verwijder schema",
+    namePrompt:"Naam voor dit schema:",
+    savedNote:"Opgeslagen in een gedownload bestand. Vervang je medrol-taper.html erdoor (of deel het) om dit schema te bewaren.",
+    confirmDelete:"Dit eigen schema definitief verwijderen?",
+    locale:"nl-BE" },
+  en:{ scheme:"Schedule", start:"Start date", lang:"Language", view:"View", grid:"Calendar", list:"List",
+    print:"Print", builder:"Edit schedule", builderhint:"Adjust duration, type and dose per phase.",
+    add:"Phase", reset:"Reset", perDay:"per day", everyOther:"every other day", day1:"Day 1", day2:"Day 2",
+    d1:"day 1", d2:"day 2", rest:"rest", mg:"mg", duration:"Duration", days:"days", weeks:"weeks", months:"months",
+    dose:"Dose", dose1:"Dose day 1", dose2:"Dose day 2", type:"Type", daily:"daily", alternate:"alternating",
+    maintenance:"maintenance — fill to end", until:"Continue this until the follow-up consultation",
+    legendTitle:"Medrol tablets", whole:"whole", custom:"Custom (empty)", phase:"Phase",
+    sub:"Pick a schedule and a start date — the calendar shows how much to take each day.",
+    toAlt:"alternating schedule", to:"→", removeP:"remove phase", up:"up", down:"down",
+    perDaySlash:"/day", footerTitle:"Footer (for print)", footerLinesLbl:"Extra medication (one per line)",
+    footerContactLbl:"Contact", resetTitle:"automatic title", titleHint:"click to edit the title",
+    altFrom:"every other day",
+    save:"Save as schedule", del:"Delete schedule",
+    namePrompt:"Name for this schedule:",
+    savedNote:"Saved into a downloaded file. Replace your medrol-taper.html with it (or share it) to keep this schedule.",
+    confirmDelete:"Permanently delete this custom schedule?",
+    locale:"en-GB" },
+  fr:{ scheme:"Schéma", start:"Date de début", lang:"Langue", view:"Vue", grid:"Calendrier", list:"Liste",
+    print:"Imprimer", builder:"Modifier le schéma", builderhint:"Ajustez durée, type et dose par phase.",
+    add:"Phase", reset:"Réinit.", perDay:"par jour", everyOther:"un jour sur deux", day1:"Jour 1", day2:"Jour 2",
+    d1:"jour 1", d2:"jour 2", rest:"repos", mg:"mg", duration:"Durée", days:"jours", weeks:"semaines", months:"mois",
+    dose:"Dose", dose1:"Dose jour 1", dose2:"Dose jour 2", type:"Type", daily:"quotidien", alternate:"alterné",
+    maintenance:"entretien — remplir jusqu'à la fin", until:"À continuer jusqu'à la consultation de contrôle",
+    legendTitle:"Comprimés de Medrol", whole:"entier", custom:"Personnalisé (vide)", phase:"Phase",
+    sub:"Choisissez un schéma et une date de début — le calendrier indique la dose de chaque jour.",
+    toAlt:"schéma alterné", to:"→", removeP:"supprimer la phase", up:"haut", down:"bas",
+    perDaySlash:"/j", footerTitle:"Bas de page (pour l'impression)", footerLinesLbl:"Médication supplémentaire (une par ligne)",
+    footerContactLbl:"Contact", resetTitle:"titre automatique", titleHint:"cliquez pour modifier le titre",
+    altFrom:"1 jour sur 2",
+    save:"Enregistrer le schéma", del:"Supprimer le schéma",
+    namePrompt:"Nom de ce schéma :",
+    savedNote:"Enregistré dans un fichier téléchargé. Remplacez votre medrol-taper.html par celui-ci (ou partagez-le) pour conserver ce schéma.",
+    confirmDelete:"Supprimer définitivement ce schéma personnalisé ?",
+    locale:"fr-BE" }
+};
+function t(k){ return I18N[state.lang][k]; }
+function esc(s){ return String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+
+/* ---------- presets (data only — same algorithm everywhere) ----------
+   Each phase: { durDays | maintenance:true, doses:[...] }
+   doses length 1 = daily, length 2 = alternate (day1, day2). */
+const D = {wk:7, mo:28};
+const PRESETS = [
+  { id:"48-12-alt", name:{nl:"Medrol 48 mg/dag → 12 mg om de 2 dagen", en:"Medrol 48 mg/day → 12 mg every other day", fr:"Medrol 48 mg/j → 12 mg un jour sur deux"},
+    phases:[ {durDays:D.mo,doses:[48]}, {durDays:D.wk,doses:[40]}, {durDays:D.wk,doses:[32]}, {durDays:D.wk,doses:[24]},
+      {durDays:D.wk,doses:[24,16]}, {durDays:D.wk,doses:[24,8]}, {durDays:D.wk,doses:[24,0]},
+      {durDays:D.wk,doses:[20,0]}, {durDays:D.wk,doses:[16,0]}, {maintenance:true,doses:[12,0]} ] },
+
+  { id:"48-24-alt", name:{nl:"Medrol 48 mg/dag → 24 mg om de 2 dagen", en:"Medrol 48 mg/day → 24 mg every other day", fr:"Medrol 48 mg/j → 24 mg un jour sur deux"},
+    phases:[ {durDays:D.wk,doses:[48]}, {durDays:2*D.wk,doses:[48,40]}, {durDays:2*D.wk,doses:[48,32]},
+      {durDays:2*D.wk,doses:[48,24]}, {durDays:2*D.wk,doses:[48,16]}, {durDays:2*D.wk,doses:[48,8]},
+      {durDays:2*D.wk,doses:[48,0]}, {durDays:2*D.wk,doses:[40,0]}, {durDays:2*D.wk,doses:[32,0]},
+      {maintenance:true,doses:[24,0]} ] },
+
+  { id:"48-12-daily", name:{nl:"Medrol 48 mg/dag → 12 mg/dag, dagelijks (diabetes)", en:"Medrol 48 mg/day → 12 mg/day, daily (diabetic)", fr:"Medrol 48 mg/j → 12 mg/j, quotidien (diabétique)"},
+    phases:[ {durDays:D.mo,doses:[48]}, {durDays:2*D.wk,doses:[40]}, {durDays:2*D.wk,doses:[32]},
+      {durDays:2*D.wk,doses:[24]}, {durDays:2*D.wk,doses:[16]}, {maintenance:true,doses:[12]} ] },
+
+  { id:"48-8-daily", name:{nl:"Medrol 48 mg/dag → 8 mg/dag in 3 maanden", en:"Medrol 48 mg/day → 8 mg/day over 3 months", fr:"Medrol 48 mg/j → 8 mg/j en 3 mois"},
+    phases:[ {durDays:D.wk,doses:[48]}, {durDays:D.wk,doses:[40]}, {durDays:D.wk,doses:[32]},
+      {durDays:D.wk,doses:[24]}, {durDays:D.wk,doses:[16]}, {durDays:D.wk,doses:[16]},
+      {durDays:D.wk,doses:[12]}, {durDays:D.wk,doses:[12]}, {maintenance:true,doses:[8]} ] },
+
+  { id:"64-24-alt", name:{nl:"Medrol 64 mg/dag → 24 mg om de 2 dagen", en:"Medrol 64 mg/day → 24 mg every other day", fr:"Medrol 64 mg/j → 24 mg un jour sur deux"},
+    phases:[ {durDays:D.mo,doses:[64]}, {durDays:D.wk,doses:[56]}, {durDays:D.wk,doses:[48]},
+      {durDays:D.wk,doses:[40]}, {durDays:D.wk,doses:[32]}, {durDays:D.wk,doses:[32,24]},
+      {durDays:D.wk,doses:[32,16]}, {durDays:D.wk,doses:[32,8]}, {durDays:D.wk,doses:[32,0]},
+      {maintenance:true,doses:[24,0]} ] },
+
+  { id:"24-12-alt", name:{nl:"Medrol 24 mg/dag → 12 mg om de 2 dagen", en:"Medrol 24 mg/day → 12 mg every other day", fr:"Medrol 24 mg/j → 12 mg un jour sur deux"},
+    phases:[ {durDays:2*D.wk,doses:[24]}, {durDays:D.wk,doses:[24,16]}, {durDays:D.wk,doses:[24,8]},
+      {durDays:D.wk,doses:[24,0]}, {durDays:D.wk,doses:[20,0]}, {durDays:D.wk,doses:[16,0]},
+      {maintenance:true,doses:[12,0]} ] },
+
+  { id:"16-4-alt", name:{nl:"Medrol 16 mg/dag → 4 mg om de 2 dagen", en:"Medrol 16 mg/day → 4 mg every other day", fr:"Medrol 16 mg/j → 4 mg un jour sur deux"},
+    phases:[ {durDays:2*D.wk,doses:[16,8]}, {durDays:2*D.wk,doses:[16,0]}, {durDays:D.mo,doses:[12,0]},
+      {durDays:D.mo,doses:[8,0]}, {maintenance:true,doses:[4,0]} ] },
+
+  { id:"32-16-alt", name:{nl:"Medrol 32 mg → 16 mg om de 2 dagen (op datum)", en:"Medrol 32 mg → 16 mg every other day (by date)", fr:"Medrol 32 mg → 16 mg un jour sur deux (par date)"},
+    phases:[ {durDays:2*D.wk,doses:[32]}, {durDays:2*D.wk,doses:[32,8]}, {durDays:2*D.wk,doses:[32,0]},
+      {durDays:2*D.wk,doses:[24,0]}, {maintenance:true,doses:[16,0]} ] }
+];
+
+/* ---------- user-saved schemes (baked into this file's #customSchemes block) ----------
+   Same shape as a preset but with a single `name` string reused across languages.
+   The JSON block in the document is the single source of truth; CUSTOM is its
+   in-memory mirror, merged into the dropdown alongside PRESETS. */
+function loadCustomSchemes(){
+  try{
+    const arr = JSON.parse(document.getElementById("customSchemes").textContent || "[]");
+    return Array.isArray(arr) ? arr.filter(c=>c && c.id && c.phases) : [];
+  }catch(e){ return []; }
+}
+let CUSTOM = loadCustomSchemes();
+function findScheme(id){ return PRESETS.find(x=>x.id===id) || CUSTOM.find(x=>x.id===id) || null; }
+function schemeName(p){ return typeof p.name==="string" ? p.name : p.name[state.lang]; }
+function isCustomScheme(id){ return CUSTOM.some(c=>c.id===id); }
+
+/* ---------- pill decomposer (32 mg + 4 mg tablets ONLY) ----------
+   Fragment values: 32,16,8 (from 32 tablet); 4,2,1 (from 4 tablet). */
+const UNITS = [
+  {val:32, strength:32, frac:1},   {val:16, strength:32, frac:0.5},  {val:8, strength:32, frac:0.25},
+  {val:4,  strength:4,  frac:1},   {val:2,  strength:4,  frac:0.5},  {val:1, strength:4,  frac:0.25}
+];
+function decompose(mg){
+  let rem = Math.round(mg), out = [];
+  for(const u of UNITS){ while(rem >= u.val){ out.push(u); rem -= u.val; } }
+  return out;
+}
+
+/* ---------- colour ----------
+   Fills/strokes/text are applied via CSS classes (fl-/st-/tx- per tablet
+   strength) instead of inline attributes, so @media print can override the
+   bright green/orange to grayscale-distinct tones for B&W printing. */
+
+/* ---------- SVG fragment drawing ----------
+   Exact cut-pill geometry: a tablet of strength S is a disc of radius K·√S.
+   A fragment is the literal whole / half / quarter SLICE of that disc, so its
+   AREA is exactly proportional to its mg value across every tablet:
+     • 16 mg = ½ of the 32 disc (half-slice)         → area = ½ · area(32)
+     • 8 mg  = ¼ of the 32 disc (quarter-slice)       → area = ¼ · area(32)
+     • 4 mg  = whole 4-tablet, radius K·√4 = K·√8 smaller than the 32 disc
+       so area(8 mg quarter) = 2 · area(4 mg whole) exactly.
+   (radius ∝ √S ⇒ area ∝ S ⇒ each slice's area ∝ its mg.) */
+const K = 4.2;                                   // px per √mg @ scale 1 (overall size)
+function discR(strength, scale){ return K*Math.sqrt(strength)*scale; }
+function fmt(n){ return (Math.round(n*10)/10); }
+function fragSVG(strength, frac, scale){
+  const r = discR(strength, scale);              // disc radius of the whole tablet
+  const v = strength*frac;                       // fragment value (label) in mg
+  const sw = Math.max(0.8, 0.085*r + 0.35);
+  const pad = sw + 2, p = pad/2;
+  const shapeCls = `fl-${strength} st-${strength}`, txtCls = `pt tx-${strength}`;
+  const digits = String(v).length;
+  let fs = r * (digits>1 ? 0.62 : 0.82);
+  if(frac<1) fs *= 0.92;
+  fs = Math.max(6.2, fs);
+  const tAttr = `class="${txtCls}" text-anchor="middle" font-size="${fmt(fs)}"`;
+  if(frac===1){
+    const Dm = 2*r + pad, c = Dm/2;
+    return `<svg width="${fmt(Dm)}" height="${fmt(Dm)}" viewBox="0 0 ${fmt(Dm)} ${fmt(Dm)}">`
+      + `<circle class="${shapeCls}" cx="${fmt(c)}" cy="${fmt(c)}" r="${fmt(r)}" stroke-width="${fmt(sw)}"/>`
+      + `<text x="${fmt(c)}" y="${fmt(c+fs*0.35)}" ${tAttr}>${v}</text></svg>`;
+  }
+  if(frac===0.5){
+    const W = r + pad, H = 2*r + pad;
+    return `<svg width="${fmt(W)}" height="${fmt(H)}" viewBox="0 0 ${fmt(W)} ${fmt(H)}">`
+      + `<path class="${shapeCls}" d="M ${fmt(p)},${fmt(p)} A ${fmt(r)},${fmt(r)} 0 0,1 ${fmt(p)},${fmt(H-p)} Z" stroke-width="${fmt(sw)}" stroke-linejoin="round"/>`
+      + `<text x="${fmt(p+r*0.40)}" y="${fmt(H/2+fs*0.34)}" ${tAttr}>${v}</text></svg>`;
+  }
+  // quarter (top-left slice)
+  const S = r + pad;
+  return `<svg width="${fmt(S)}" height="${fmt(S)}" viewBox="0 0 ${fmt(S)} ${fmt(S)}">`
+    + `<path class="${shapeCls}" d="M ${fmt(p)},${fmt(p)} L ${fmt(r+p)},${fmt(p)} A ${fmt(r)},${fmt(r)} 0 0,1 ${fmt(p)},${fmt(r+p)} Z" stroke-width="${fmt(sw)}" stroke-linejoin="round"/>`
+    + `<text x="${fmt(p+r*0.33)}" y="${fmt(p+r*0.46+fs*0.32)}" ${tAttr}>${v}</text></svg>`;
+}
+function doseDrawing(mg, scale){
+  return decompose(mg).map(u => fragSVG(u.strength, u.frac, scale)).join("");
+}
+
+/* ---------- calendar projector ---------- */
+function ymd(d){ return d.getFullYear()+"-"+d.getMonth()+"-"+d.getDate(); }
+function buildDays(phases, start, months){
+  // Horizon = first day of (start month + months): the schedule fills exactly
+  // `months` whole calendar grids (so 6 months → 3 grids/sheet → 2 sheets).
+  const end = new Date(start.getFullYear(), start.getMonth()+months, 1);
+  const days = []; const cur = new Date(start);
+  outer:
+  for(let pi=0; pi<phases.length; pi++){
+    const ph = phases[pi];
+    const len = ph.maintenance ? Infinity : ph.durDays;
+    const cl = ph.doses.length;
+    for(let i=0; i<len; i++){
+      if(cur >= end) break outer;
+      const pos = i % cl;
+      days.push({ date:new Date(cur), mg:ph.doses[pos], phaseIndex:pi,
+                  cyclePos:pos, cycleLen:cl, isPhaseStart:(i===0) });
+      cur.setDate(cur.getDate()+1);
+    }
+  }
+  // mark the every-other-day zone and the single day it begins
+  days.forEach((d,i)=>{
+    d.isAlt = d.cycleLen>1;
+    d.altTransition = d.isAlt && (i===0 || !days[i-1].isAlt);
+  });
+  return days;
+}
+
+/* ---------- localized date helpers ---------- */
+function weekdayShorts(){
+  const f = new Intl.DateTimeFormat(t("locale"), {weekday:"short"});
+  const a = []; for(let i=0;i<7;i++){ a.push(f.format(new Date(2024,0,1+i))); } // 2024-01-01 = Monday
+  return a;
+}
+function monthTitle(d){
+  return new Intl.DateTimeFormat(t("locale"), {month:"long", year:"numeric"}).format(d);
+}
+function weekdayLong(d){
+  return new Intl.DateTimeFormat(t("locale"), {weekday:"short"}).format(d);
+}
+
+/* ---------- render: grid ---------- */
+function phaseTag(day){
+  if(day.cycleLen>1) return t("to")+" "+t("toAlt");
+  return t("to")+" "+day.mg+" "+t("mg");
+}
+function cellHTML(day, dayNum){
+  if(!day) return `<div class="cell empty"><span class="dnum">${dayNum}</span></div>`;
+  const chip = day.cycleLen>1 ? `<span class="chip">${day.cyclePos===0?t("d1"):t("d2")}</span>` : "";
+  const tag = (day.isPhaseStart && !day.altTransition) ? `<span class="ptag">${phaseTag(day)}</span>` : "";
+  // on the transition day the day-number lives inside the banner (so the big
+  // arrow doesn't collide with the corner tab); otherwise the usual corner tab.
+  const banner = day.altTransition
+    ? `<span class="altbanner"><span class="abtop"><span class="bnum">${dayNum}</span><span class="ar">⇄</span></span>`
+      + `<span class="albl">${esc(t("altFrom"))}</span></span>` : "";
+  const dn = day.altTransition ? "" : `<span class="dnum">${dayNum}</span>`;
+  const cls = (day.isPhaseStart?" pstart":"") + (day.isAlt?" altday":"") + (day.altTransition?" altstart":"");
+  if(day.mg===0){
+    return `<div class="cell rest${cls}">${banner}${dn}${chip}`
+      + `<span class="dose"><span class="mg">0</span> <span class="mgunit">${t("rest")}</span></span>`
+      + `<div class="rest-pill"></div>${tag}</div>`;
+  }
+  return `<div class="cell${cls}">${banner}${dn}${chip}`
+    + `<span class="dose"><span class="mg">${day.mg}</span> <span class="mgunit">${t("mg")}</span></span>`
+    + `<span class="pills">${doseDrawing(day.mg, 0.55)}</span>${tag}</div>`;
+}
+function renderGrid(days){
+  if(!days.length) return "";
+  const map = {}; days.forEach(d => map[ymd(d.date)] = d);
+  const first = days[0].date, last = days[days.length-1].date;
+  const wd = weekdayShorts();
+  let html = "", m = new Date(first.getFullYear(), first.getMonth(), 1);
+  const stop = new Date(last.getFullYear(), last.getMonth(), 1);
+  let delay = 0;
+  while(m <= stop){
+    const y = m.getFullYear(), mo = m.getMonth();
+    const dim = new Date(y, mo+1, 0).getDate();
+    const lead = (new Date(y, mo, 1).getDay()+6)%7;
+    let cells = "";
+    for(let i=0;i<lead;i++) cells += `<div class="cell empty"></div>`;
+    for(let d=1; d<=dim; d++){
+      const key = y+"-"+mo+"-"+d;
+      cells += cellHTML(map[key], d);
+    }
+    html += `<section class="month" style="animation-delay:${delay}ms">`
+      + `<h3>${cap(new Intl.DateTimeFormat(t("locale"),{month:"long"}).format(m))} <span class="yr">${y}</span></h3>`
+      + `<div class="dow">${wd.map(w=>`<span>${w}</span>`).join("")}</div>`
+      + `<div class="grid">${cells}</div></section>`;
+    delay += 70;
+    m = new Date(y, mo+1, 1);
+  }
+  return html;
+}
+function cap(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+/* ---------- render: list ---------- */
+function phaseSummary(ph){
+  if(ph.doses.length>1){
+    return `${t("day1")} ${ph.doses[0]} ${t("mg")} · ${t("day2")} ${ph.doses[1]} ${t("mg")} (${t("everyOther")})`;
+  }
+  return `${ph.doses[0]} ${t("mg")} ${t("perDay")}`;
+}
+function renderList(days, phases){
+  if(!days.length) return "";
+  let html = `<div class="listbox">`, curPhase = -1, altSeen = false;
+  const dfmt = new Intl.DateTimeFormat(t("locale"), {day:"2-digit", month:"short"});
+  days.forEach(day=>{
+    if(day.phaseIndex !== curPhase){
+      curPhase = day.phaseIndex;
+      const ph = phases[curPhase];
+      const maint = ph.maintenance ? " · "+t("until") : "";
+      const isAltPhase = ph.doses.length>1;
+      const altFirst = isAltPhase && !altSeen;
+      if(isAltPhase) altSeen = true;
+      const arrow = altFirst ? `<span class="ar">⇄</span>` : "";
+      html += `<div class="phead${altFirst?' altfirst':''}"><span class="pno">${curPhase+1}</span>${arrow}${phaseSummary(ph)}${maint}</div>`;
+    }
+    const rest = day.mg===0;
+    const draw = rest ? `<span class="restlbl">${t("rest")}</span>` : `<span class="lpills">${doseDrawing(day.mg,0.62)}</span>`;
+    html += `<div class="lrow ${rest?'lrest':''}">`
+      + `<span class="ldate"><span class="wd">${weekdayLong(day.date)}</span>${dfmt.format(day.date)}</span>`
+      + `<span class="lmg">${day.mg}<span style="font-size:11px;color:var(--ink-soft)"> ${t("mg")}</span></span>`
+      + draw + `</div>`;
+  });
+  return html + `</div>`;
+}
+
+/* ---------- render: slim clinical footer (editable, legend removed) ---------- */
+function renderLegend(){
+  const lines = state.footerLines.map(l=>`<span>+ ${esc(l)}</span>`).join("");
+  const contact = state.footerContact ? `<span class="mail">${esc(state.footerContact)}</span>` : "";
+  document.getElementById("legend").innerHTML = lines + contact;
+}
+
+/* ---------- document title (auto-generated, user-overridable) ----------
+   Empty/custom schemes get a title built from the data, mirroring the preset
+   names ("Medrol 48 mg/dag → 12 mg om de 2 dagen"). A user-typed title wins. */
+function autoTitle(){
+  const phs = state.phases;
+  if(!phs || !phs.length) return "Medrol";
+  const startDose = phs[0].doses[0];
+  const last = phs[phs.length-1];
+  const endDose = last.doses[0];
+  const endAlt = last.doses.length>1;
+  const sl = t("perDaySlash");
+  let s = `Medrol ${startDose} mg${sl} ${t("to")} ${endDose} mg`;
+  s += endAlt ? " "+t("everyOther") : sl;
+  return s;
+}
+function currentTitle(){
+  if(state.title != null && state.title.trim() !== "") return state.title;
+  if(state.schemeId !== "__custom"){
+    const p = findScheme(state.schemeId);
+    if(p) return schemeName(p);
+  }
+  return autoTitle();
+}
+
+/* ---------- state ---------- */
+const state = {
+  lang:"nl", view:"grid", schemeId:PRESETS[0].id,
+  phases:clonePhases(PRESETS[0].phases),
+  start:isoToday(), months:6,
+  title:null,                                  // null = auto/preset; string = user override
+  footerLines:["Pantoprazol 20 mg: 1 per dag", "Steovit 1000: 1 per dag"],
+  footerContact:""
+};
+function isoToday(){ const d=new Date(); return d.toISOString().slice(0,10); }
+function clonePhases(p){ return p.map(x=>({ durDays:x.durDays, maintenance:!!x.maintenance, doses:x.doses.slice() })); }
+function parseStart(){ const [y,m,d]=state.start.split("-").map(Number); return new Date(y, m-1, d); }
+
+/* ---------- duration helpers ---------- */
+function durParts(days){
+  if(days % D.mo === 0) return {val:days/D.mo, unit:"months"};
+  if(days % D.wk === 0) return {val:days/D.wk, unit:"weeks"};
+  return {val:days, unit:"days"};
+}
+const UNIT_FACTOR = {days:1, weeks:D.wk, months:D.mo};
+
+/* ---------- builder render ---------- */
+function renderBuilder(){
+  const host = document.getElementById("phases");
+  host.innerHTML = state.phases.map((ph,idx)=>{
+    const isAlt = ph.doses.length>1;
+    const dp = durParts(ph.durDays || D.wk);
+    const durBlock = ph.maintenance ? "" :
+      `<div class="dur-wrap">
+        <div class="field"><label>${t("duration")}</label>
+          <input type="number" min="1" value="${dp.val}" data-act="durval" data-idx="${idx}"></div>
+        <div class="field"><label>&nbsp;</label>
+          <select data-act="durunit" data-idx="${idx}">
+            <option value="days" ${dp.unit==="days"?"selected":""}>${t("days")}</option>
+            <option value="weeks" ${dp.unit==="weeks"?"selected":""}>${t("weeks")}</option>
+            <option value="months" ${dp.unit==="months"?"selected":""}>${t("months")}</option>
+          </select></div>
+      </div>`;
+    const doseBlock = isAlt ?
+      `<div class="field"><label>${t("dose1")}</label><input type="number" min="0" step="1" value="${ph.doses[0]}" data-act="dose0" data-idx="${idx}"></div>
+       <div class="field"><label>${t("dose2")}</label><input type="number" min="0" step="1" value="${ph.doses[1]}" data-act="dose1" data-idx="${idx}"></div>` :
+      `<div class="field"><label>${t("dose")}</label><input type="number" min="0" step="1" value="${ph.doses[0]}" data-act="dose0" data-idx="${idx}"></div>`;
+    return `<div class="phase">
+      <div class="phase-top">
+        <span class="phase-num">${idx+1}</span>
+        <div class="field grow"><label>${t("type")}</label>
+          <select data-act="mode" data-idx="${idx}">
+            <option value="daily" ${!isAlt?"selected":""}>${t("daily")}</option>
+            <option value="alt" ${isAlt?"selected":""}>${t("alternate")}</option>
+          </select></div>
+        <button class="iconbtn" data-act="up" data-idx="${idx}" title="${t("up")}" ${idx===0?"disabled":""}>↑</button>
+        <button class="iconbtn" data-act="down" data-idx="${idx}" title="${t("down")}" ${idx===state.phases.length-1?"disabled":""}>↓</button>
+        <button class="iconbtn" data-act="del" data-idx="${idx}" title="${t("removeP")}">✕</button>
+      </div>
+      <div class="phase-row">${doseBlock}${durBlock}</div>
+      <div class="maint-row">
+        <input type="checkbox" data-act="maint" data-idx="${idx}" ${ph.maintenance?"checked":""}>
+        <span>${t("maintenance")}</span>
+      </div>
+    </div>`;
+  }).join("");
+  updateSchemeActions();
+}
+/* show the Delete button only for user-saved schemes */
+function updateSchemeActions(){
+  document.getElementById("delPreset").style.display = isCustomScheme(state.schemeId) ? "" : "none";
+}
+
+/* ---------- main render ---------- */
+function renderAll(){
+  const days = buildDays(state.phases, parseStart(), state.months);
+  document.getElementById("out").innerHTML =
+    state.view==="grid" ? renderGrid(days) : renderList(days, state.phases);
+  const nameEl = document.getElementById("schemeName");
+  if(document.activeElement !== nameEl) nameEl.textContent = currentTitle();
+  document.getElementById("titleReset").classList.toggle("show", state.title != null && state.title.trim() !== "");
+  if(days.length){
+    const f = days[0].date, l = days[days.length-1].date;
+    const df = new Intl.DateTimeFormat(t("locale"),{day:"numeric",month:"short",year:"numeric"});
+    document.getElementById("schemeRange").textContent = df.format(f)+" – "+df.format(l);
+  } else {
+    document.getElementById("schemeRange").textContent = "";
+  }
+  renderLegend();
+  save();
+}
+
+/* ---------- static UI text ---------- */
+function applyStaticText(){
+  document.documentElement.lang = state.lang;
+  document.getElementById("sub").textContent = t("sub");
+  document.getElementById("lbl-scheme").textContent = t("scheme");
+  document.getElementById("lbl-start").textContent = t("start");
+  document.getElementById("lbl-lang").textContent = t("lang");
+  document.getElementById("lbl-view").textContent = t("view");
+  document.getElementById("btn-grid").textContent = t("grid");
+  document.getElementById("btn-list").textContent = t("list");
+  document.getElementById("lbl-print").textContent = t("print");
+  document.getElementById("lbl-builder").textContent = t("builder");
+  document.getElementById("lbl-builderhint").textContent = t("builderhint");
+  document.getElementById("lbl-add").textContent = t("add");
+  document.getElementById("lbl-reset").textContent = t("reset");
+  document.getElementById("lbl-foot").textContent = t("footerTitle");
+  document.getElementById("lbl-footlines").textContent = t("footerLinesLbl");
+  document.getElementById("lbl-footcontact").textContent = t("footerContactLbl");
+  document.getElementById("footLines").value = state.footerLines.join("\n");
+  document.getElementById("footContact").value = state.footerContact;
+  document.getElementById("titleReset").title = t("resetTitle");
+  document.getElementById("schemeName").title = t("titleHint");
+  document.getElementById("lbl-save").textContent = t("save");
+  document.getElementById("lbl-del").textContent = t("del");
+  // scheme dropdown: built-in presets, then any user-saved schemes, then empty
+  const sel = document.getElementById("schemeSel");
+  const customOpts = CUSTOM.length
+    ? `<option disabled>──────────</option>` + CUSTOM.map(c=>`<option value="${c.id}">${esc(c.name)}</option>`).join("")
+    : "";
+  sel.innerHTML = PRESETS.map(p=>`<option value="${p.id}">${esc(p.name[state.lang])}</option>`).join("")
+    + customOpts + `<option value="__custom">${t("custom")}</option>`;
+  sel.value = state.schemeId;
+}
+
+/* ---------- persistence ---------- */
+function save(){
+  try{ localStorage.setItem("medrol-taper", JSON.stringify({
+    lang:state.lang, view:state.view, schemeId:state.schemeId, phases:state.phases, start:state.start,
+    title:state.title, footerLines:state.footerLines, footerContact:state.footerContact
+  })); }catch(e){}
+}
+function load(){
+  try{
+    const s = JSON.parse(localStorage.getItem("medrol-taper"));
+    if(s && s.phases){ Object.assign(state, s); }
+  }catch(e){}
+}
+
+/* ---------- save a scheme into a downloaded copy of this file ----------
+   A file:// page can't re-read its own source, but it CAN serialize its own DOM.
+   So we clone the document, blank the rendered/transient parts, write the schemes
+   JSON into the dedicated #customSchemes block, and hand it back as a download. */
+function showSavedNote(){
+  const n = document.getElementById("savedNote");
+  n.textContent = t("savedNote");
+  n.style.display = "";
+}
+function downloadSelf(){
+  const clone = document.documentElement.cloneNode(true);
+  const q = s => clone.querySelector(s);
+  // single source of truth — escape "<" so a name can never close the script tag
+  const data = q("#customSchemes");
+  if(data) data.textContent = JSON.stringify(CUSTOM).replace(/</g, "\\u003c");
+  // strip everything rendered/typed from the live session so the file stays clean
+  ["#out","#phases","#legend","#schemeSel"].forEach(s=>{ const e=q(s); if(e) e.innerHTML=""; });
+  const nm = q("#schemeName"); if(nm) nm.textContent="";
+  const sn = q("#savedNote"); if(sn){ sn.textContent=""; sn.style.display="none"; }
+  const fl = q("#footLines"); if(fl) fl.textContent="";
+  const dp = q("#delPreset"); if(dp) dp.style.display="none";
+  const html = "<!DOCTYPE html>\n" + clone.outerHTML;
+  const url = URL.createObjectURL(new Blob([html], {type:"text/html;charset=utf-8"}));
+  const a = document.createElement("a");
+  a.href = url; a.download = "medrol-taper.html";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url), 1500);
+}
+function saveAsPreset(){
+  const name = (window.prompt(t("namePrompt"), currentTitle()) || "").trim();
+  if(!name) return;                              // cancelled / empty → no-op
+  const id = "u-" + Date.now();
+  CUSTOM.push({ id, name, phases: clonePhases(state.phases) });
+  state.schemeId = id;
+  state.title = null;
+  applyStaticText();                             // rebuild dropdown with the new entry
+  renderBuilder(); renderAll();                  // updateSchemeActions reveals Delete
+  downloadSelf();
+  showSavedNote();
+}
+function deletePreset(){
+  if(!isCustomScheme(state.schemeId)) return;
+  if(!window.confirm(t("confirmDelete"))) return;
+  CUSTOM = CUSTOM.filter(c=>c.id!==state.schemeId);
+  state.schemeId = PRESETS[0].id;
+  state.phases = clonePhases(PRESETS[0].phases);
+  state.title = null;
+  applyStaticText();
+  renderBuilder(); renderAll();
+  downloadSelf();                                // persist the removal into a new file
+  showSavedNote();
+}
+
+/* ---------- events ---------- */
+function wire(){
+  document.getElementById("schemeSel").addEventListener("change", e=>{
+    state.schemeId = e.target.value;
+    state.title = null;                          // back to the scheme's own / auto title
+    const p = findScheme(state.schemeId);
+    state.phases = p ? clonePhases(p.phases) : [{durDays:D.wk, maintenance:false, doses:[16]}];
+    renderBuilder(); renderAll();
+  });
+
+  // editable document title
+  const nameEl = document.getElementById("schemeName");
+  nameEl.addEventListener("input", ()=>{
+    state.title = nameEl.textContent;
+    document.getElementById("titleReset").classList.toggle("show", state.title.trim() !== "");
+    save();
+  });
+  nameEl.addEventListener("keydown", e=>{ if(e.key==="Enter"){ e.preventDefault(); nameEl.blur(); } });
+  document.getElementById("titleReset").addEventListener("click", ()=>{
+    state.title = null; renderAll();
+  });
+
+  // editable footer
+  document.getElementById("footLines").addEventListener("input", e=>{
+    state.footerLines = e.target.value.split("\n").map(s=>s.trim()).filter(Boolean);
+    renderLegend(); save();
+  });
+  document.getElementById("footContact").addEventListener("input", e=>{
+    state.footerContact = e.target.value.trim();
+    renderLegend(); save();
+  });
+
+  document.getElementById("startDate").addEventListener("change", e=>{
+    state.start = e.target.value || isoToday(); renderAll();
+  });
+
+  document.getElementById("langSeg").addEventListener("click", e=>{
+    const b = e.target.closest("button[data-lang]"); if(!b) return;
+    state.lang = b.dataset.lang;
+    document.querySelectorAll("#langSeg button").forEach(x=>x.classList.toggle("active", x===b));
+    applyStaticText(); renderBuilder(); renderAll();
+  });
+
+  document.getElementById("viewSeg").addEventListener("click", e=>{
+    const b = e.target.closest("button[data-view]"); if(!b) return;
+    state.view = b.dataset.view;
+    document.querySelectorAll("#viewSeg button").forEach(x=>x.classList.toggle("active", x===b));
+    renderAll();
+  });
+
+  document.getElementById("printBtn").addEventListener("click", ()=>window.print());
+
+  document.getElementById("addPhase").addEventListener("click", ()=>{
+    markCustom();
+    state.phases.push({durDays:D.wk, maintenance:false, doses:[8]});
+    renderBuilder(); renderAll();
+  });
+  document.getElementById("resetScheme").addEventListener("click", ()=>{
+    const p = findScheme(state.schemeId);
+    if(p){ state.phases = clonePhases(p.phases); renderBuilder(); renderAll(); }
+  });
+
+  document.getElementById("savePreset").addEventListener("click", saveAsPreset);
+  document.getElementById("delPreset").addEventListener("click", deletePreset);
+
+  // builder delegation
+  const host = document.getElementById("phases");
+  host.addEventListener("change", e=>{
+    const el = e.target, act = el.dataset.act, idx = +el.dataset.idx;
+    if(act===undefined || isNaN(idx)) return;
+    const ph = state.phases[idx];
+    markCustom();
+    if(act==="mode"){
+      if(el.value==="alt" && ph.doses.length===1) ph.doses = [ph.doses[0], 0];
+      if(el.value==="daily" && ph.doses.length>1) ph.doses = [ph.doses[0]];
+      renderBuilder();
+    } else if(act==="dose0"){ ph.doses[0] = clampDose(el.value);
+    } else if(act==="dose1"){ ph.doses[1] = clampDose(el.value);
+    } else if(act==="durval"){ const u = durParts(ph.durDays).unit; ph.durDays = Math.max(1,+el.value||1)*UNIT_FACTOR[u];
+    } else if(act==="durunit"){ const v = durParts(ph.durDays).val; ph.durDays = v*UNIT_FACTOR[el.value];
+    } else if(act==="maint"){ ph.maintenance = el.checked; renderBuilder(); }
+    renderAll();
+  });
+  host.addEventListener("click", e=>{
+    const b = e.target.closest("button[data-act]"); if(!b) return;
+    const act = b.dataset.act, idx = +b.dataset.idx;
+    markCustom();
+    if(act==="del" && state.phases.length>1){ state.phases.splice(idx,1); }
+    else if(act==="up" && idx>0){ [state.phases[idx-1],state.phases[idx]]=[state.phases[idx],state.phases[idx-1]]; }
+    else if(act==="down" && idx<state.phases.length-1){ [state.phases[idx+1],state.phases[idx]]=[state.phases[idx],state.phases[idx+1]]; }
+    else return;
+    renderBuilder(); renderAll();
+  });
+}
+function clampDose(v){ let n = Math.round(+v||0); return n<0?0:n; }
+function markCustom(){
+  // editing keeps the named scheme but the user may diverge; leave schemeId as-is for the caption.
+}
+
+/* ---------- init ---------- */
+function init(){
+  load();
+  document.getElementById("startDate").value = state.start;
+  // restore lang/view button states
+  document.querySelectorAll("#langSeg button").forEach(x=>x.classList.toggle("active", x.dataset.lang===state.lang));
+  document.querySelectorAll("#viewSeg button").forEach(x=>x.classList.toggle("active", x.dataset.view===state.view));
+  applyStaticText();
+  renderBuilder();
+  renderAll();
+  wire();
+}
+init();
+</script>
+</body>
+</html>
