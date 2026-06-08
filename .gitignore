@@ -1,0 +1,17 @@
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Node (tests use the built-in runner; no deps, but just in case)
+node_modules/
+npm-debug.log*
+
+# Local Chromium profiles / scratch used when regenerating the example PDF
+.chromium-profile/
+*.tmp
+
+# Note: medrol-taper-example.pdf and example-preview.png are intentionally
+# tracked — they're the committed example output shown in the README.
