@@ -13,5 +13,6 @@ npm-debug.log*
 .chromium-profile/
 *.tmp
 
-# Note: medrol-taper-example.pdf and example-preview.png are intentionally
-# tracked — they're the committed example output shown in the README.
+# Generated example PDF — regenerate from medrol-taper.html, don't commit.
+# (example-preview.png IS tracked; it's the README preview.)
+medrol-taper-example.pdf
