@@ -1,3 +1,11 @@
+# AI agent tooling
+# .claude/settings.json (team config) and .claude/agents/ would be committed,
+# but this project has neither — only the personal-override file exists.
+.claude/settings.local.json
+# .codex/ and .agents/ are empty; ignore them so accidental state files don't slip in.
+.codex/
+.agents/
+
 # OS / editor cruft
 .DS_Store
 Thumbs.db
