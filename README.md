@@ -6,6 +6,13 @@ glance** — then prints it on A4 to hand over in clinic.
 
 Built for elderly / low-vision patients, in **Dutch, English and French**.
 
+![Example of the printed calendar](example-preview.png)
+
+*Example output ([full colour PDF](medrol-taper-example.pdf)) — a 48 mg/day →
+12 mg every-other-day taper. Two months per A4 sheet; the every-other-day switch
+is banner-marked, and the maintenance dose (8 mg + 4 mg tablets) is drawn to
+scale on each dose day.*
+
 ## For clinicians
 
 1. Open **`medrol-taper.html`** in any web browser (double-click it — no install,
