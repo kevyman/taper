@@ -19,6 +19,7 @@ npm-debug.log*
 
 # Local Chromium profiles / scratch used when regenerating the example PDF
 .chromium-profile/
+.wrangler/
 *.tmp
 
 # Generated example PDF — regenerate from medrol-taper.html, don't commit.
