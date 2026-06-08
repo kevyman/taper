@@ -6,7 +6,8 @@
 <title>Medrol afbouwschema · kalender</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet"></noscript>
 <style>
   :root{
     --bg:#faf6f0;
@@ -297,7 +298,9 @@
   @media print{
     @page{size:A4 portrait;margin:8mm}
     body{background:#fff;padding:0;color:#000;font-size:12px}
-    .controls,.builder-col,.topbar{display:none !important}
+    .stage-vp{position:static;display:block;overflow:visible}
+    .stage{width:auto;height:auto;transform:none !important;display:block;background:none;box-shadow:none}
+    .appbar,.editorbar,.savednote,.foot-pop{display:none !important}
     .layout{display:block}
     .wrap{padding:0;max-width:none}
     main{display:block}
@@ -313,7 +316,10 @@
     #out{display:block}
     .month{box-shadow:none;border:1.5px solid #8f8f8f;border-radius:8px;
       margin:0 0 3mm;padding:2.5mm 3.5mm 2mm;animation:none;opacity:1;transform:none;break-inside:avoid}
-    .month:nth-of-type(2n):not(:last-of-type){break-after:page}
+    /* sheets paginate the print: one sheet (= 2 months) per A4 page */
+    .sheet{display:block;break-inside:avoid}
+    .sheet:not(:last-child){break-after:page}
+    .sheet-page{display:block;background:none;border:none;box-shadow:none;padding:0;margin:0}
     .month h3{font-size:22px;font-weight:700;color:#000;margin-bottom:1.6mm;padding-bottom:1.2mm;border-bottom:2px solid #c9c9c9}
     .month h3 .yr{font-size:16px;color:#555}
     .dow{gap:1.2mm;margin-bottom:1.2mm}
@@ -366,19 +372,186 @@
     .footer .mail{margin-left:auto;color:#222;font-weight:700}
   }
 </style>
+<!-- ===== B (clean clinical) on-screen layout — @media screen ONLY, so the A4
+     print output above is left exactly as the original (untouched). ===== -->
+<style>
+@media screen{
+  html,body{height:100%;}
+  body{height:100vh;overflow:hidden;background:#d7dce2;color:#1f2733;padding:0;}
+  /* fixed 1920x1080 stage, scaled to fit any viewport (always fits, no scroll) */
+  .stage-vp{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+  .stage{width:1920px;height:1080px;flex:none;transform-origin:center center;
+    display:flex;flex-direction:column;background:#eef1f5;box-shadow:0 8px 40px rgba(20,30,50,.22);}
+
+  /* ---- command bar ---- */
+  .appbar{display:flex;align-items:center;gap:24px;padding:10px 28px;
+    background:#fff;border-bottom:1px solid #e2e7ee;flex:none;}
+  .ab-brand{display:flex;align-items:center;gap:11px;flex:none;}
+  .pilldot{width:13px;height:13px;border-radius:50%;background:#0e7c86;display:inline-block;flex:none;}
+  .ab-title{display:flex;flex-direction:column;line-height:1.12;}
+  .ab-title h1{font-family:var(--font-display);font-size:18px;font-weight:700;letter-spacing:-.01em;}
+  .ab-title .sub{font-size:11px;color:#8b95a3;max-width:330px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .ab-controls{display:flex;align-items:flex-end;gap:14px;}
+  .field{display:flex;flex-direction:column;gap:4px;}
+  .field label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#8b95a3;}
+  .appbar select,.appbar input[type=date]{font-family:var(--font-body);font-size:13.5px;color:#1f2733;
+    background:#f7f9fb;border:1px solid #d6dde6;border-radius:9px;padding:7px 10px;outline:none;}
+  .appbar select:focus,.appbar input:focus{border-color:#0e7c86;box-shadow:0 0 0 3px #d3eeee;}
+  select.scheme{min-width:230px;max-width:300px;font-weight:500;}
+  .seg{display:inline-flex;background:#f1f4f8;border:1px solid #d6dde6;border-radius:9px;padding:3px;gap:3px;}
+  .seg button{font-family:var(--font-body);font-size:12px;font-weight:600;color:#6b7585;background:transparent;
+    border:none;border-radius:6px;padding:5px 11px;cursor:pointer;transition:all .12s;}
+  .seg button.active{background:#0e7c86;color:#fff;}
+  .seg button:not(.active):hover{color:#1f2733;background:#e6ebf1;}
+  .ab-actions{margin-left:auto;display:flex;align-items:center;gap:9px;}
+  .btn{font-family:var(--font-body);font-size:13px;font-weight:700;background:#fff;color:#1f2733;
+    border:1px solid #d6dde6;border-radius:9px;padding:8px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .12s;}
+  .btn:hover{border-color:#0e7c86;color:#0b5a61;}
+  .btn.primary{background:#0e7c86;color:#fff;border-color:#0e7c86;}
+  .btn.primary:hover{background:#0b6a72;color:#fff;}
+  .btn.on{border-color:#0e7c86;color:#0b5a61;background:#eef8f8;}
+
+  /* ---- footer popover ---- */
+  .foot-wrap{position:relative;}
+  .foot-pop{position:absolute;top:calc(100% + 8px);right:0;width:300px;background:#fff;border:1px solid #d6dde6;
+    border-radius:12px;box-shadow:0 12px 34px rgba(20,30,50,.18);padding:14px;z-index:60;}
+  .foot-pop[hidden]{display:none;}
+  .foot-pop h2{font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:10px;}
+  .foot-pop .field{margin-bottom:10px;gap:5px;}
+  .foot-pop textarea,.foot-pop input{width:100%;font-family:var(--font-body);font-size:13px;line-height:1.4;
+    background:#f7f9fb;border:1px solid #d6dde6;border-radius:9px;padding:8px 10px;color:#1f2733;outline:none;resize:vertical;}
+  .foot-pop textarea:focus,.foot-pop input:focus{border-color:#0e7c86;box-shadow:0 0 0 3px #d3eeee;}
+
+  /* ---- editor ribbon ---- */
+  .editorbar{flex:none;padding:9px 28px 0;}
+  .eb-head{display:flex;align-items:baseline;gap:12px;margin-bottom:8px;}
+  .eb-head h2{font-family:var(--font-display);font-size:14px;font-weight:700;}
+  .eb-head .hint{font-size:11.5px;color:#8b95a3;}
+  .eb-spacer{flex:1;}
+  .btn.sm{padding:5px 10px;font-size:12px;}
+  .btn.ghost{background:#f7f9fb;}
+  .phaserow{display:flex;gap:0;align-items:stretch;background:#fff;border:1px solid #e2e7ee;
+    border-radius:12px;padding:6px;box-shadow:0 1px 2px rgba(20,30,50,.04);}
+  .phases-contents{display:contents;}
+
+  /* ---- phase card (compact, editable) ---- */
+  .phase{flex:1 1 0;min-width:0;border:none;border-right:1px solid #eef1f5;border-radius:0;margin:0;
+    padding:4px 8px;display:flex;flex-direction:column;gap:4px;background:transparent;}
+  .phase.is-alt{background:#f4fbfb;}
+  .phase.is-maint{background:#ecf7f7;}
+  .phase-top{display:flex;align-items:center;gap:5px;margin:0;}
+  .phase-num{width:17px;height:17px;border-radius:50%;background:#1f2733;color:#fff;font-family:var(--font-display);
+    font-size:10.5px;font-weight:700;display:grid;place-items:center;flex:none;}
+  .phase.is-alt .phase-num{background:#0e7c86;}
+  .pc-mode{flex:1;min-width:0;font-family:var(--font-body);font-size:11px;font-weight:600;color:#1f2733;
+    background:#f7f9fb;border:1px solid #d6dde6;border-radius:7px;padding:3px 4px;outline:none;}
+  .pc-tools{display:flex;gap:2px;flex:none;}
+  .iconbtn{border:1px solid #d6dde6;background:#fff;border-radius:6px;width:18px;height:18px;cursor:pointer;
+    color:#6b7585;font-size:10px;line-height:1;display:grid;place-items:center;padding:0;transition:all .1s;}
+  .iconbtn:hover{color:#0e7c86;border-color:#0e7c86;}
+  .iconbtn:disabled{opacity:.3;cursor:default;}
+  .phase-dose{display:flex;align-items:center;gap:3px;flex-wrap:wrap;}
+  .phase-dose input{width:42px;font-family:var(--font-display);font-size:15px;font-weight:700;color:#1f2733;
+    background:#fff;border:1px solid #d6dde6;border-radius:7px;padding:3px 4px;text-align:center;outline:none;}
+  .phase-dose input:focus{border-color:#0e7c86;box-shadow:0 0 0 2px #d3eeee;}
+  .pc-slash{color:#9aa3b1;font-weight:700;}
+  .pc-unit{font-size:10px;color:#8b95a3;font-weight:600;}
+  .pc-dur{display:flex;gap:4px;}
+  .pc-dur input{width:38px;font-size:11px;background:#f7f9fb;border:1px solid #d6dde6;border-radius:7px;padding:3px 4px;text-align:center;outline:none;}
+  .pc-dur select{flex:1;min-width:0;font-size:10.5px;background:#f7f9fb;border:1px solid #d6dde6;border-radius:7px;padding:3px 3px;outline:none;}
+  .maint-row{display:flex;align-items:center;gap:5px;font-size:9.5px;color:#6b7585;cursor:pointer;line-height:1.12;margin:0;}
+  .maint-row input{accent-color:#0e7c86;width:13px;height:13px;flex:none;margin:0;}
+  .phase.is-maint .maint-row{color:#0b5a61;font-weight:700;}
+  .addphase{flex:none;width:56px;border:1px dashed #c2cdd8;background:#f7f9fb;border-radius:9px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+    font-size:11px;font-weight:600;color:#6b7585;cursor:pointer;transition:all .12s;}
+  .addphase:hover{border-color:#0e7c86;color:#0b5a61;}
+
+  /* ---- save toast ---- */
+  .savednote{position:fixed;top:62px;right:28px;z-index:70;max-width:320px;font-size:12px;color:#0b5a61;
+    background:#dff1f0;border:1px solid #b9e0dd;border-radius:10px;padding:10px 12px;box-shadow:0 10px 28px rgba(20,30,50,.16);line-height:1.4;}
+
+  /* ---- calendar area ---- */
+  .wrap{flex:1;min-height:0;display:flex;flex-direction:column;max-width:none;margin:0;padding:8px 28px 14px;}
+  main{flex:1;min-height:0;display:flex;flex-direction:column;}
+  .scheme-caption{font-family:var(--font-display);font-size:15px;font-weight:700;margin:0 0 6px;display:flex;align-items:center;gap:9px;flex:none;}
+  .scheme-caption .tag{font-family:var(--font-body);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
+    color:#0b5a61;background:#dff1f0;padding:3px 9px;border-radius:20px;}
+  .title-edit{outline:none;border-radius:7px;padding:1px 7px;margin-left:-7px;border:1px dashed transparent;cursor:text;transition:background .12s,border-color .12s;}
+  .title-edit:hover{border-color:#d6dde6;background:#fff;}
+  .title-edit:focus{border-color:#0e7c86;background:#fff;box-shadow:0 0 0 3px #d3eeee;}
+  .title-reset{border:1px solid #d6dde6;background:#fff;color:#6b7585;border-radius:8px;width:24px;height:24px;
+    cursor:pointer;font-size:13px;line-height:1;display:none;place-items:center;flex:none;}
+  .title-reset:hover{color:#0e7c86;border-color:#0e7c86;}
+  .title-reset.show{display:grid;}
+
+  /* ---- 3 sheets, 2 months each ---- */
+  .out{flex:1;min-height:0;display:flex;gap:22px;overflow:hidden;}
+  .sheet{flex:1 1 0;min-width:0;min-height:0;display:flex;opacity:0;transform:translateY(8px);animation:rise .5s ease forwards;}
+  .sheet-page{flex:1;min-width:0;min-height:0;background:#fff;border:1px solid #dfe5ec;border-radius:6px;
+    box-shadow:0 2px 6px rgba(20,30,50,.06),0 12px 28px rgba(20,30,50,.07);
+    padding:11px 12px 12px;display:flex;flex-direction:column;gap:8px;overflow:hidden;}
+
+  /* compact month grid (screen) */
+  .month{flex:1 1 0;min-height:0;display:flex;flex-direction:column;margin:0;background:none;border:none;
+    box-shadow:none;border-radius:0;padding:0;opacity:1;transform:none;animation:none;}
+  .month h3{font-family:var(--font-display);font-size:13px;font-weight:700;margin-bottom:3px;display:flex;align-items:baseline;gap:6px;text-transform:capitalize;color:#1f2733;}
+  .month h3 .yr{font-size:11px;font-weight:400;color:#9aa3b1;}
+  .dow{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px;}
+  .dow span{font-size:9.5px;font-weight:700;text-align:center;color:#5a6472;}
+  .grid{display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:minmax(0,1fr);gap:3px;flex:1;min-height:0;}
+  .cell{min-height:0;border:1px solid #e7ecf2;border-radius:6px;background:#fbfcfd;padding:2px;
+    display:flex;flex-direction:column;align-items:center;justify-content:flex-start;position:relative;overflow:hidden;}
+  .cell:not(.empty):hover{transform:none;box-shadow:none;z-index:auto;}
+  .cell.empty{background:transparent;border:none;}
+  .dnum{position:absolute;top:0;left:0;font-size:9px;font-weight:700;color:#4a5564;background:#eef2f6;
+    padding:2px 5px;border-radius:6px 0 6px 0;line-height:1;}
+  .cell.empty .dnum{background:transparent;color:#c4ccd6;}
+  .chip{position:absolute;top:2px;right:2px;font-size:7px;font-weight:700;padding:1px 4px;border-radius:9px;background:#e3eaf1;color:#5a6472;}
+  .dose{display:flex;flex-direction:row;align-items:baseline;gap:2px;margin-top:5px;}
+  .cell .mg{font-family:var(--font-display);font-weight:700;font-size:15px;line-height:1;color:#1f2733;}
+  .cell .mgunit{font-size:8px;color:#8b95a3;margin:0;}
+  .pills{min-height:0;gap:1.5px;margin-top:1px;align-items:flex-end;zoom:.60;}
+  .cell.pstart{border-color:#0e7c86;box-shadow:0 0 0 1px #d3eeee;}
+  .cell.altday{background:#f0f9f9;}
+  .cell.altday.rest{background:#eaf3f3;}
+  .cell.altstart{border:2px solid #0b5a61;justify-content:flex-end;padding:0 2px 3px;overflow:hidden;}
+  .cell.altstart .dnum,.cell.altstart .chip,.cell.altstart .pills{display:none;}
+  .cell.altstart .dose{margin-top:0;}
+  .altbanner{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;justify-content:center;gap:3px;
+    min-height:20px;background:#0b5a61;color:#fff;border-radius:5px 5px 0 0;padding:2px 3px;box-shadow:none;}
+  .altbanner .albl-print{display:none;}
+  .altbanner .albl-screen{display:flex;flex-direction:column;align-items:flex-start;gap:0;font-size:7px;font-weight:800;line-height:1.05;white-space:nowrap;}
+  .cell.rest{background:#f1f4f7;border-style:dashed;border-color:#d6dde6;}
+  .cell.rest .mg{color:#aab2bd;font-size:15px;}
+  .rest-pill{display:none;}
+  .ptag{display:none;}
+
+  /* slim on-screen footer */
+  /* on-screen footer hidden to maximise calendar room; it still prints, and is
+     edited via the Voettekst popover (a print-preview shows it on paper). */
+  .footer{display:none;}
+  .footer .mail{margin-left:auto;color:#0b5a61;font-weight:700;}
+
+  /* list view fallback */
+  .out:has(.listbox){display:block;overflow:auto;}
+  .listbox{background:#fff;border:1px solid #e2e7ee;border-radius:12px;box-shadow:0 1px 2px rgba(20,30,50,.04);}
+}
+</style>
 </head>
 <body>
+<div class="stage-vp"><div class="stage" id="stage">
 
-<header class="topbar">
-  <div class="topbar-inner brand">
+<!-- ===== command bar ===== -->
+<header class="appbar">
+  <div class="ab-brand">
     <span class="pilldot"></span>
-    <h1>Medrol afbouwschema</h1>
-    <span class="sub" id="sub">Kies een schema en een startdatum — de kalender toont elke dag hoeveel u inneemt.</span>
+    <div class="ab-title">
+      <h1>Medrol afbouwschema</h1>
+      <span class="sub" id="sub"></span>
+    </div>
   </div>
-</header>
-
-<div class="controls">
-  <div class="controls-inner">
+  <div class="ab-controls">
     <div class="field">
       <label id="lbl-scheme">Schema</label>
       <select class="scheme" id="schemeSel"></select>
@@ -402,27 +575,11 @@
         <button data-view="list" id="btn-list">Lijst</button>
       </div>
     </div>
-    <div class="spacer"></div>
-    <button class="btn primary" id="printBtn">🖶 <span id="lbl-print">Afdrukken</span></button>
   </div>
-</div>
-
-<div class="wrap">
-  <div class="layout">
-    <aside class="builder-col">
-     <div class="builder">
-      <h2 id="lbl-builder">Schema bewerken</h2>
-      <p class="hint" id="lbl-builderhint">Pas duur, type (dagelijks/alternerend) en dosis per fase aan.</p>
-      <div id="phases"></div>
-      <div class="builder-actions">
-        <button class="btn" id="addPhase">+ <span id="lbl-add">Fase</span></button>
-        <button class="btn" id="resetScheme" title="reset"><span id="lbl-reset">Herstel</span></button>
-        <button class="btn primary" id="savePreset">★ <span id="lbl-save">Bewaar als schema</span></button>
-        <button class="btn" id="delPreset" style="display:none"><span id="lbl-del">Verwijder schema</span></button>
-      </div>
-      <p class="savednote" id="savedNote" style="display:none"></p>
-
-      <div class="foot-edit">
+  <div class="ab-actions">
+    <div class="foot-wrap">
+      <button class="btn" id="footToggle" type="button">✎ <span id="lbl-foottoggle">Voettekst</span></button>
+      <div class="foot-pop" id="footPop" hidden>
         <h2 id="lbl-foot">Voettekst</h2>
         <div class="field">
           <label id="lbl-footlines">Extra medicatie</label>
@@ -433,20 +590,43 @@
           <input type="text" id="footContact">
         </div>
       </div>
-     </div>
-    </aside>
-
-    <main>
-      <div class="scheme-caption">
-        <span id="schemeName" class="title-edit" contenteditable="true" spellcheck="false"></span>
-        <button class="title-reset" id="titleReset" title="">↺</button>
-        <span class="tag" id="schemeRange"></span>
-      </div>
-      <div class="out" id="out"></div>
-      <section class="footer" id="legend"></section>
-    </main>
+    </div>
+    <button class="btn" id="savePreset">★ <span id="lbl-save">Bewaar als schema</span></button>
+    <button class="btn" id="delPreset" style="display:none"><span id="lbl-del">Verwijder schema</span></button>
+    <button class="btn primary" id="printBtn">🖶 <span id="lbl-print">Afdrukken</span></button>
   </div>
+</header>
+
+<!-- ===== editor ribbon (horizontal) ===== -->
+<section class="editorbar">
+  <div class="eb-head">
+    <h2 id="lbl-builder">Schema bewerken</h2>
+    <span class="hint" id="lbl-builderhint"></span>
+    <span class="eb-spacer"></span>
+    <button class="btn ghost sm" id="resetScheme" title="reset"><span id="lbl-reset">Herstel</span></button>
+  </div>
+  <div class="phaserow">
+    <div id="phases" class="phases-contents"></div>
+    <button class="addphase" id="addPhase" title="">＋<span id="lbl-add">Fase</span></button>
+  </div>
+</section>
+
+<p class="savednote" id="savedNote" style="display:none"></p>
+
+<!-- ===== calendar (3 sheets · 2 months each) — this block is what prints ===== -->
+<div class="wrap">
+  <main>
+    <div class="scheme-caption">
+      <span id="schemeName" class="title-edit" contenteditable="true" spellcheck="false"></span>
+      <button class="title-reset" id="titleReset" title="">↺</button>
+      <span class="tag" id="schemeRange"></span>
+    </div>
+    <div class="out" id="out"></div>
+    <section class="footer" id="legend"></section>
+  </main>
 </div>
+
+</div></div><!-- /stage -->
 
 <!-- User-saved schedules live here. The app reads this block on load and writes
      an updated copy into a downloaded file when you Save. Keep it on one line. -->
@@ -469,7 +649,7 @@ const I18N = {
     maintenance:"onderhoud — vul aan tot einde", until:"Zo continueren tot aan de controleraadpleging",
     legendTitle:"Pillen van Medrol", whole:"heel", custom:"Eigen schema (leeg)", phase:"Fase",
     sub:"Kies een schema en een startdatum — de kalender toont elke dag hoeveel u inneemt.",
-    toAlt:"alternerend schema", to:"→", removeP:"verwijder fase", up:"omhoog", down:"omlaag",
+    toAlt:"alternerend schema", to:"→", removeP:"verwijder fase", up:"naar links", down:"naar rechts",
     perDaySlash:"/dag", footerTitle:"Voettekst (voor de afdruk)", footerLinesLbl:"Extra medicatie (één per lijn)",
     footerContactLbl:"Contact", resetTitle:"automatische titel", titleHint:"klik om de titel aan te passen",
     altLines:["Vanaf nu","om de 2","dagen"], altPrintLines:["Vanaf nu","om de 2 dagen"],
@@ -486,7 +666,7 @@ const I18N = {
     maintenance:"maintenance — fill to end", until:"Continue this until the follow-up consultation",
     legendTitle:"Medrol tablets", whole:"whole", custom:"Custom (empty)", phase:"Phase",
     sub:"Pick a schedule and a start date — the calendar shows how much to take each day.",
-    toAlt:"alternating schedule", to:"→", removeP:"remove phase", up:"up", down:"down",
+    toAlt:"alternating schedule", to:"→", removeP:"remove phase", up:"move left", down:"move right",
     perDaySlash:"/day", footerTitle:"Footer (for print)", footerLinesLbl:"Extra medication (one per line)",
     footerContactLbl:"Contact", resetTitle:"automatic title", titleHint:"click to edit the title",
     altLines:["From now","every 2","days"], altPrintLines:["From now","every 2 days"],
@@ -503,7 +683,7 @@ const I18N = {
     maintenance:"entretien — remplir jusqu'à la fin", until:"À continuer jusqu'à la consultation de contrôle",
     legendTitle:"Comprimés de Medrol", whole:"entier", custom:"Personnalisé (vide)", phase:"Phase",
     sub:"Choisissez un schéma et une date de début — le calendrier indique la dose de chaque jour.",
-    toAlt:"schéma alterné", to:"→", removeP:"supprimer la phase", up:"haut", down:"bas",
+    toAlt:"schéma alterné", to:"→", removeP:"supprimer la phase", up:"vers la gauche", down:"vers la droite",
     perDaySlash:"/j", footerTitle:"Bas de page (pour l'impression)", footerLinesLbl:"Médication supplémentaire (une par ligne)",
     footerContactLbl:"Contact", resetTitle:"titre automatique", titleHint:"cliquez pour modifier le titre",
     altLines:["Maintenant","tous les","2 jours"], altPrintLines:["Maintenant","tous les 2 jours"],
@@ -708,9 +888,8 @@ function renderGrid(days){
   const map = {}; days.forEach(d => map[ymd(d.date)] = d);
   const first = days[0].date, last = days[days.length-1].date;
   const wd = weekdayShorts();
-  let html = "", m = new Date(first.getFullYear(), first.getMonth(), 1);
+  const months = []; let m = new Date(first.getFullYear(), first.getMonth(), 1);
   const stop = new Date(last.getFullYear(), last.getMonth(), 1);
-  let delay = 0;
   while(m <= stop){
     const y = m.getFullYear(), mo = m.getMonth();
     const dim = new Date(y, mo+1, 0).getDate();
@@ -721,12 +900,18 @@ function renderGrid(days){
       const key = y+"-"+mo+"-"+d;
       cells += cellHTML(map[key], d);
     }
-    html += `<section class="month" style="animation-delay:${delay}ms">`
+    months.push(`<section class="month">`
       + `<h3>${cap(new Intl.DateTimeFormat(t("locale"),{month:"long"}).format(m))} <span class="yr">${y}</span></h3>`
       + `<div class="dow">${wd.map(w=>`<span>${w}</span>`).join("")}</div>`
-      + `<div class="grid">${cells}</div></section>`;
-    delay += 70;
+      + `<div class="grid">${cells}</div></section>`);
     m = new Date(y, mo+1, 1);
+  }
+  // group into A4-style sheets of 2 months — one sheet = one printed page
+  let html = "", delay = 0;
+  for(let i=0;i<months.length;i+=2){
+    html += `<div class="sheet" style="animation-delay:${delay}ms"><div class="sheet-page">`
+      + months.slice(i,i+2).join("") + `</div></div>`;
+    delay += 80;
   }
   return html;
 }
@@ -823,37 +1008,36 @@ function renderBuilder(){
     const isAlt = ph.doses.length>1;
     const dp = durParts(ph.durDays || D.wk);
     const durBlock = ph.maintenance ? "" :
-      `<div class="dur-wrap">
-        <div class="field"><label>${t("duration")}</label>
-          <input type="number" min="1" value="${dp.val}" data-act="durval" data-idx="${idx}"></div>
-        <div class="field"><label>&nbsp;</label>
-          <select data-act="durunit" data-idx="${idx}">
-            <option value="days" ${dp.unit==="days"?"selected":""}>${t("days")}</option>
-            <option value="weeks" ${dp.unit==="weeks"?"selected":""}>${t("weeks")}</option>
-            <option value="months" ${dp.unit==="months"?"selected":""}>${t("months")}</option>
-          </select></div>
+      `<div class="pc-dur">
+        <input type="number" min="1" value="${dp.val}" data-act="durval" data-idx="${idx}" aria-label="${t("duration")}">
+        <select data-act="durunit" data-idx="${idx}" aria-label="${t("duration")}">
+          <option value="days" ${dp.unit==="days"?"selected":""}>${t("days")}</option>
+          <option value="weeks" ${dp.unit==="weeks"?"selected":""}>${t("weeks")}</option>
+          <option value="months" ${dp.unit==="months"?"selected":""}>${t("months")}</option>
+        </select>
       </div>`;
     const doseBlock = isAlt ?
-      `<div class="field"><label>${t("dose1")}</label><input type="number" min="0" step="1" value="${ph.doses[0]}" data-act="dose0" data-idx="${idx}"></div>
-       <div class="field"><label>${t("dose2")}</label><input type="number" min="0" step="1" value="${ph.doses[1]}" data-act="dose1" data-idx="${idx}"></div>` :
-      `<div class="field"><label>${t("dose")}</label><input type="number" min="0" step="1" value="${ph.doses[0]}" data-act="dose0" data-idx="${idx}"></div>`;
-    return `<div class="phase">
+      `<input type="number" min="0" step="1" value="${ph.doses[0]}" data-act="dose0" data-idx="${idx}" aria-label="${t("dose1")}">
+       <span class="pc-slash">/</span>
+       <input type="number" min="0" step="1" value="${ph.doses[1]}" data-act="dose1" data-idx="${idx}" aria-label="${t("dose2")}">` :
+      `<input type="number" min="0" step="1" value="${ph.doses[0]}" data-act="dose0" data-idx="${idx}" aria-label="${t("dose")}">`;
+    const cls = "phase" + (isAlt?" is-alt":"") + (ph.maintenance?" is-maint":"");
+    return `<div class="${cls}">
       <div class="phase-top">
         <span class="phase-num">${idx+1}</span>
-        <div class="field grow"><label>${t("type")}</label>
-          <select data-act="mode" data-idx="${idx}">
-            <option value="daily" ${!isAlt?"selected":""}>${t("daily")}</option>
-            <option value="alt" ${isAlt?"selected":""}>${t("alternate")}</option>
-          </select></div>
-        <button class="iconbtn" data-act="up" data-idx="${idx}" title="${t("up")}" ${idx===0?"disabled":""}>↑</button>
-        <button class="iconbtn" data-act="down" data-idx="${idx}" title="${t("down")}" ${idx===state.phases.length-1?"disabled":""}>↓</button>
-        <button class="iconbtn" data-act="del" data-idx="${idx}" title="${t("removeP")}">✕</button>
+        <select class="pc-mode" data-act="mode" data-idx="${idx}" aria-label="${t("type")}">
+          <option value="daily" ${!isAlt?"selected":""}>${t("daily")}</option>
+          <option value="alt" ${isAlt?"selected":""}>${t("alternate")}</option>
+        </select>
+        <span class="pc-tools">
+          <button class="iconbtn" data-act="up" data-idx="${idx}" title="${t("up")}" ${idx===0?"disabled":""}>←</button>
+          <button class="iconbtn" data-act="down" data-idx="${idx}" title="${t("down")}" ${idx===state.phases.length-1?"disabled":""}>→</button>
+          <button class="iconbtn" data-act="del" data-idx="${idx}" title="${t("removeP")}">✕</button>
+        </span>
       </div>
-      <div class="phase-row">${doseBlock}${durBlock}</div>
-      <div class="maint-row">
-        <input type="checkbox" data-act="maint" data-idx="${idx}" ${ph.maintenance?"checked":""}>
-        <span>${t("maintenance")}</span>
-      </div>
+      <div class="phase-dose">${doseBlock}<span class="pc-unit">${t("mg")}</span></div>
+      ${durBlock}
+      <label class="maint-row"><input type="checkbox" data-act="maint" data-idx="${idx}" ${ph.maintenance?"checked":""}><span>${t("maintenance")}</span></label>
     </div>`;
   }).join("");
   updateSchemeActions();
@@ -898,6 +1082,7 @@ function applyStaticText(){
   document.getElementById("lbl-add").textContent = t("add");
   document.getElementById("lbl-reset").textContent = t("reset");
   document.getElementById("lbl-foot").textContent = t("footerTitle");
+  document.getElementById("lbl-foottoggle").textContent = t("footerTitle").split(" (")[0];
   document.getElementById("lbl-footlines").textContent = t("footerLinesLbl");
   document.getElementById("lbl-footcontact").textContent = t("footerContactLbl");
   document.getElementById("footLines").value = state.footerLines.join("\n");
@@ -1035,6 +1220,19 @@ function wire(){
 
   document.getElementById("printBtn").addEventListener("click", ()=>window.print());
 
+  // Voettekst popover (footer editing lives here to keep the ribbon compact)
+  const footPop = document.getElementById("footPop");
+  const footToggle = document.getElementById("footToggle");
+  footToggle.addEventListener("click", e=>{
+    e.stopPropagation();
+    footPop.hidden = !footPop.hidden;
+    footToggle.classList.toggle("on", !footPop.hidden);
+  });
+  footPop.addEventListener("click", e=>e.stopPropagation());
+  document.addEventListener("click", ()=>{
+    if(!footPop.hidden){ footPop.hidden = true; footToggle.classList.remove("on"); }
+  });
+
   document.getElementById("addPhase").addEventListener("click", ()=>{
     markCustom();
     state.phases.push({durDays:D.wk, maintenance:false, doses:[8]});
@@ -1082,9 +1280,19 @@ function markCustom(){
   // editing keeps the named scheme but the user may diverge; leave schemeId as-is for the caption.
 }
 
+/* ---------- fit the 1920x1080 stage to the viewport (screen only) ---------- */
+function fitStage(){
+  const st = document.getElementById("stage");
+  if(!st) return;
+  const s = Math.min(window.innerWidth/1920, window.innerHeight/1080);
+  st.style.transform = "scale("+s+")";
+}
+window.addEventListener("resize", fitStage);
+
 /* ---------- init ---------- */
 function init(){
   load();
+  fitStage();
   document.getElementById("startDate").value = state.start;
   // restore lang/view button states
   document.querySelectorAll("#langSeg button").forEach(x=>x.classList.toggle("active", x.dataset.lang===state.lang));
