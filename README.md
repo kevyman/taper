@@ -47,6 +47,7 @@ Hyperlegible web font, which degrades gracefully to system fonts offline).
 ```
 medrol-taper.html   the whole app
 tests/              print-layout regression tests (Node's built-in test runner)
+scripts/            regen-example.sh — rebuild the example PDF + README preview
 AGENTS.md           design constraints + architecture (read this before changing things)
 ```
 
