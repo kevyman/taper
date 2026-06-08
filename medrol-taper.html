@@ -1105,7 +1105,8 @@ function applyStaticText(){
 function save(){
   try{ localStorage.setItem("medrol-taper", JSON.stringify({
     lang:state.lang, view:state.view, schemeId:state.schemeId, phases:state.phases, start:state.start,
-    title:state.title, footerLines:state.footerLines, footerContact:state.footerContact
+    title:state.title, footerLines:state.footerLines,
+    ...(state.footerContact ? {footerContact:state.footerContact} : {})
   })); }catch(e){}
 }
 function load(){
