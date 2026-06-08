@@ -319,20 +319,20 @@
     .dow{gap:1.2mm;margin-bottom:1.2mm}
     .dow span{font-size:12px;font-weight:700;color:#222;text-transform:none}
 
-    /* uniform rows — big cells that fill the page and breathe; large pills */
+    /* uniform rows — reserve a top label rail so corner labels never cover the dose */
     .grid{gap:1.5mm;grid-auto-rows:18.6mm}
-    .cell{min-height:0;border:1.2px solid #aeaeae;border-radius:6px;padding:.8mm 1px;overflow:hidden;
-      display:flex;flex-direction:column;align-items:center;justify-content:center}
+    .cell{min-height:0;border:1.2px solid #aeaeae;border-radius:6px;padding:5mm 1px .8mm;overflow:hidden;
+      display:flex;flex-direction:column;align-items:center;justify-content:flex-start}
     .cell:hover{transform:none;box-shadow:none}
     .cell.empty{border:none;background:transparent}
     .dnum{top:0;left:0;font-size:12px;font-weight:700;color:#333;background:#e8e2d4;
       padding:1.5px 7px 2.5px;border-radius:6px 0 8px 0}
     .cell.empty .dnum{background:transparent;color:#bbb}
-    .chip{font-size:9.5px;padding:.3mm 1.8mm;top:.6mm;right:.6mm;background:#e7e7e7;color:#111;border:.5px solid #aeaeae;font-weight:700;border-radius:20px}
-    .dose{flex-direction:row;align-items:baseline;gap:2px;margin:1.4mm 0 0;line-height:1}
-    .cell .mg{font-size:21px;line-height:1;font-weight:700;color:#000}
-    .cell .mgunit{display:inline;font-size:12px;color:#333;margin:0;font-weight:700}
-    .cell .pills{min-height:0;gap:3px;margin-top:1mm;zoom:1.05;flex:1;align-items:center}
+    .chip{font-size:9.5px;padding:.3mm 1.8mm;top:0;right:0;background:#e7e7e7;color:#111;border:0;border-top:0;border-right:0;border-left:.5px solid #aeaeae;border-bottom:.5px solid #aeaeae;font-weight:700;border-radius:0 6px 0 8px}
+    .dose{flex-direction:row;align-items:baseline;gap:2px;margin:0 0 .4mm;line-height:1}
+    .cell .mg{font-size:20px;line-height:1;font-weight:700;color:#000}
+    .cell .mgunit{display:inline;font-size:11px;color:#333;margin:0;font-weight:700}
+    .cell .pills{min-height:0;gap:3px;margin-top:0;zoom:.9;flex:0;align-items:center}
     .cell.pstart{border-color:#000;border-width:1.8px;box-shadow:none}
     .ptag{display:none}
 
@@ -362,7 +362,7 @@
 
     /* slim clinical footer */
     .footer{box-shadow:none;border:1px solid #9a9a9a;border-radius:6px;break-inside:avoid;
-      margin-top:3mm;padding:2mm 4mm;display:flex;gap:18px;align-items:center;flex-wrap:wrap;font-size:11px;color:#000}
+      margin-top:1mm;padding:1.5mm 4mm;display:flex;gap:18px;align-items:center;flex-wrap:wrap;font-size:10.5px;color:#000}
     .footer .mail{margin-left:auto;color:#222;font-weight:700}
   }
 </style>
