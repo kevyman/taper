@@ -825,16 +825,20 @@ function buildDays(phases, start, months){
   // `months` whole calendar grids (so 6 months → 3 grids/sheet → 2 sheets).
   const end = new Date(start.getFullYear(), start.getMonth()+months, 1);
   const days = []; const cur = new Date(start);
+  let altRunPos = 0;
   outer:
   for(let pi=0; pi<phases.length; pi++){
     const ph = phases[pi];
     const len = ph.maintenance ? Infinity : ph.durDays;
     const cl = ph.doses.length;
+    const isAltPhase = cl > 1;
     for(let i=0; i<len; i++){
       if(cur >= end) break outer;
-      const pos = i % cl;
+      const pos = isAltPhase ? altRunPos % cl : 0;
       days.push({ date:new Date(cur), mg:ph.doses[pos], phaseIndex:pi,
                   cyclePos:pos, cycleLen:cl, isPhaseStart:(i===0) });
+      if(isAltPhase) altRunPos++;
+      else altRunPos = 0;
       cur.setDate(cur.getDate()+1);
     }
   }
