@@ -706,20 +706,15 @@ const PRESETS = [
       {durDays:D.wk,doses:[24,16]}, {durDays:D.wk,doses:[24,8]}, {durDays:D.wk,doses:[24,0]},
       {durDays:D.wk,doses:[20,0]}, {durDays:D.wk,doses:[16,0]}, {maintenance:true,doses:[12,0]} ] },
 
-  { id:"48-24-alt", name:{nl:"Medrol 48 mg/dag → 24 mg om de 2 dagen", en:"Medrol 48 mg/day → 24 mg every other day", fr:"Medrol 48 mg/j → 24 mg un jour sur deux"},
-    phases:[ {durDays:D.wk,doses:[48]}, {durDays:2*D.wk,doses:[48,40]}, {durDays:2*D.wk,doses:[48,32]},
-      {durDays:2*D.wk,doses:[48,24]}, {durDays:2*D.wk,doses:[48,16]}, {durDays:2*D.wk,doses:[48,8]},
-      {durDays:2*D.wk,doses:[48,0]}, {durDays:2*D.wk,doses:[40,0]}, {durDays:2*D.wk,doses:[32,0]},
-      {maintenance:true,doses:[24,0]} ] },
-
-  { id:"48-12-daily", name:{nl:"Medrol 48 mg/dag → 12 mg/dag, dagelijks (diabetes)", en:"Medrol 48 mg/day → 12 mg/day, daily (diabetic)", fr:"Medrol 48 mg/j → 12 mg/j, quotidien (diabétique)"},
-    phases:[ {durDays:D.mo,doses:[48]}, {durDays:2*D.wk,doses:[40]}, {durDays:2*D.wk,doses:[32]},
-      {durDays:2*D.wk,doses:[24]}, {durDays:2*D.wk,doses:[16]}, {maintenance:true,doses:[12]} ] },
-
   { id:"48-8-daily", name:{nl:"Medrol 48 mg/dag → 8 mg/dag in 3 maanden", en:"Medrol 48 mg/day → 8 mg/day over 3 months", fr:"Medrol 48 mg/j → 8 mg/j en 3 mois"},
-    phases:[ {durDays:D.wk,doses:[48]}, {durDays:D.wk,doses:[40]}, {durDays:D.wk,doses:[32]},
+    phases:[ {durDays:D.mo,doses:[48]}, {durDays:D.wk,doses:[40]}, {durDays:D.wk,doses:[32]},
       {durDays:D.wk,doses:[24]}, {durDays:D.wk,doses:[16]}, {durDays:D.wk,doses:[16]},
       {durDays:D.wk,doses:[12]}, {durDays:D.wk,doses:[12]}, {maintenance:true,doses:[8]} ] },
+
+  { id:"48-4-daily", name:{nl:"Medrol 48 mg/dag → 4 mg/dag", en:"Medrol 48 mg/day → 4 mg/day", fr:"Medrol 48 mg/j → 4 mg/j"},
+    phases:[ {durDays:D.mo,doses:[48]}, {durDays:D.wk,doses:[40]}, {durDays:D.wk,doses:[32]},
+      {durDays:D.wk,doses:[24]}, {durDays:D.wk,doses:[20]}, {durDays:2*D.wk,doses:[16]},
+      {durDays:2*D.wk,doses:[12]}, {durDays:2*D.wk,doses:[8]}, {maintenance:true,doses:[4]} ] },
 
   { id:"64-24-alt", name:{nl:"Medrol 64 mg/dag → 24 mg om de 2 dagen", en:"Medrol 64 mg/day → 24 mg every other day", fr:"Medrol 64 mg/j → 24 mg un jour sur deux"},
     phases:[ {durDays:D.mo,doses:[64]}, {durDays:D.wk,doses:[56]}, {durDays:D.wk,doses:[48]},
@@ -736,9 +731,10 @@ const PRESETS = [
     phases:[ {durDays:2*D.wk,doses:[16,8]}, {durDays:2*D.wk,doses:[16,0]}, {durDays:D.mo,doses:[12,0]},
       {durDays:D.mo,doses:[8,0]}, {maintenance:true,doses:[4,0]} ] },
 
-  { id:"32-16-alt", name:{nl:"Medrol 32 mg → 16 mg om de 2 dagen (op datum)", en:"Medrol 32 mg → 16 mg every other day (by date)", fr:"Medrol 32 mg → 16 mg un jour sur deux (par date)"},
-    phases:[ {durDays:2*D.wk,doses:[32]}, {durDays:2*D.wk,doses:[32,8]}, {durDays:2*D.wk,doses:[32,0]},
-      {durDays:2*D.wk,doses:[24,0]}, {maintenance:true,doses:[16,0]} ] }
+  { id:"32-16-alt", name:{nl:"Medrol 32 mg → 8 mg om de 2 dagen", en:"Medrol 32 mg → 8 mg every other day", fr:"Medrol 32 mg → 8 mg un jour sur deux"},
+    phases:[ {durDays:D.mo,doses:[32]}, {durDays:D.wk,doses:[24]}, {durDays:D.wk,doses:[24,16]},
+      {durDays:D.wk,doses:[24,8]}, {durDays:D.wk,doses:[24,0]}, {durDays:D.wk,doses:[20,0]},
+      {durDays:D.wk,doses:[16,0]}, {durDays:D.wk,doses:[12,0]}, {maintenance:true,doses:[8,0]} ] }
 ];
 
 /* ---------- user-saved schemes (baked into this file's #customSchemes block) ----------
