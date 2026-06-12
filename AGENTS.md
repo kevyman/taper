@@ -57,18 +57,14 @@ degrades to system fonts). Layers, top to bottom in the `<script>`:
   calendar dates; marks phase starts and the alternate-day transition.
 - **Render** — `renderGrid` (calendar view, the one that prints), `renderList`
   (screen list view), `renderBuilder` (the editor), `renderLegend` (footer).
-- **Persistence** — `localStorage` for the live session, plus a "save as
-  scheme" path (see below).
+- **Persistence** — `localStorage` for the live session and browser-local saved
+  custom schemes.
 
-## The self-saving quirk
+## Saved custom schemes
 
-A `file://` page can't rewrite its own source. So **"Save as scheme"**
-serializes the live DOM, bakes the custom schemes into the
-`<script id="customSchemes">` JSON block, and triggers a **download of a new
-copy** of `medrol-taper.html`. The user replaces their file with the download to
-keep custom schemes. `#customSchemes` is the single source of truth for saved
-schemes; keep it on one line and keep `<` escaped so a scheme name can't close
-the script tag.
+On the deployed website, custom schemes are stored in the browser's
+`localStorage`. They stay available on the same device/browser, but they are not
+shared across browsers or devices.
 
 ## Working on this
 

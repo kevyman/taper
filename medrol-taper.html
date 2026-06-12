@@ -628,10 +628,6 @@
 
 </div></div><!-- /stage -->
 
-<!-- User-saved schedules live here. The app reads this block on load and writes
-     an updated copy into a downloaded file when you Save. Keep it on one line. -->
-<script type="application/json" id="customSchemes">[]</script>
-
 <script>
 /* ============================================================
    Medrol tapering calendar — single-file app
@@ -655,7 +651,7 @@ const I18N = {
     altLines:["Vanaf nu","om de 2","dagen"], altPrintLines:["Vanaf nu","om de 2 dagen"],
     save:"Bewaar als schema", del:"Verwijder schema",
     namePrompt:"Naam voor dit schema:",
-    savedNote:"Opgeslagen in een gedownload bestand. Vervang je medrol-taper.html erdoor (of deel het) om dit schema te bewaren.",
+    savedNote:"Opgeslagen in deze browser op dit toestel.",
     confirmDelete:"Dit eigen schema definitief verwijderen?",
     locale:"nl-BE" },
   en:{ scheme:"Schedule", start:"Start date", lang:"Language", view:"View", grid:"Calendar", list:"List",
@@ -672,7 +668,7 @@ const I18N = {
     altLines:["From now","every 2","days"], altPrintLines:["From now","every 2 days"],
     save:"Save as schedule", del:"Delete schedule",
     namePrompt:"Name for this schedule:",
-    savedNote:"Saved into a downloaded file. Replace your medrol-taper.html with it (or share it) to keep this schedule.",
+    savedNote:"Saved in this browser on this device.",
     confirmDelete:"Permanently delete this custom schedule?",
     locale:"en-GB" },
   fr:{ scheme:"Schéma", start:"Date de début", lang:"Langue", view:"Vue", grid:"Calendrier", list:"Liste",
@@ -689,7 +685,7 @@ const I18N = {
     altLines:["Maintenant","tous les","2 jours"], altPrintLines:["Maintenant","tous les 2 jours"],
     save:"Enregistrer le schéma", del:"Supprimer le schéma",
     namePrompt:"Nom de ce schéma :",
-    savedNote:"Enregistré dans un fichier téléchargé. Remplacez votre medrol-taper.html par celui-ci (ou partagez-le) pour conserver ce schéma.",
+    savedNote:"Enregistré dans ce navigateur sur cet appareil.",
     confirmDelete:"Supprimer définitivement ce schéma personnalisé ?",
     locale:"fr-BE" }
 };
@@ -737,15 +733,18 @@ const PRESETS = [
       {durDays:D.wk,doses:[16,0]}, {durDays:D.wk,doses:[12,0]}, {maintenance:true,doses:[8,0]} ] }
 ];
 
-/* ---------- user-saved schemes (baked into this file's #customSchemes block) ----------
+/* ---------- user-saved schemes (stored in browser localStorage) ----------
    Same shape as a preset but with a single `name` string reused across languages.
-   The JSON block in the document is the single source of truth; CUSTOM is its
-   in-memory mirror, merged into the dropdown alongside PRESETS. */
+   CUSTOM is the in-memory mirror, merged into the dropdown alongside PRESETS. */
+const CUSTOM_SCHEMES_KEY = "medrol-taper-custom-schemes";
 function loadCustomSchemes(){
   try{
-    const arr = JSON.parse(document.getElementById("customSchemes").textContent || "[]");
+    const arr = JSON.parse(localStorage.getItem(CUSTOM_SCHEMES_KEY) || "[]");
     return Array.isArray(arr) ? arr.filter(c=>c && c.id && c.phases) : [];
   }catch(e){ return []; }
+}
+function saveCustomSchemes(){
+  try{ localStorage.setItem(CUSTOM_SCHEMES_KEY, JSON.stringify(CUSTOM)); }catch(e){}
 }
 let CUSTOM = loadCustomSchemes();
 function findScheme(id){ return PRESETS.find(x=>x.id===id) || CUSTOM.find(x=>x.id===id) || null; }
@@ -1116,56 +1115,45 @@ function load(){
   }catch(e){}
 }
 
-/* ---------- save a scheme into a downloaded copy of this file ----------
-   A file:// page can't re-read its own source, but it CAN serialize its own DOM.
-   So we clone the document, blank the rendered/transient parts, write the schemes
-   JSON into the dedicated #customSchemes block, and hand it back as a download. */
 function showSavedNote(){
   const n = document.getElementById("savedNote");
   n.textContent = t("savedNote");
   n.style.display = "";
 }
-function downloadSelf(){
-  const clone = document.documentElement.cloneNode(true);
-  const q = s => clone.querySelector(s);
-  // single source of truth — escape "<" so a name can never close the script tag
-  const data = q("#customSchemes");
-  if(data) data.textContent = JSON.stringify(CUSTOM).replace(/</g, "\\u003c");
-  // strip everything rendered/typed from the live session so the file stays clean
-  ["#out","#phases","#legend","#schemeSel"].forEach(s=>{ const e=q(s); if(e) e.innerHTML=""; });
-  const nm = q("#schemeName"); if(nm) nm.textContent="";
-  const sn = q("#savedNote"); if(sn){ sn.textContent=""; sn.style.display="none"; }
-  const fl = q("#footLines"); if(fl) fl.textContent="";
-  const dp = q("#delPreset"); if(dp) dp.style.display="none";
-  const html = "<!DOCTYPE html>\n" + clone.outerHTML;
-  const url = URL.createObjectURL(new Blob([html], {type:"text/html;charset=utf-8"}));
-  const a = document.createElement("a");
-  a.href = url; a.download = "medrol-taper.html";
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(()=>URL.revokeObjectURL(url), 1500);
-}
 function saveAsPreset(){
+  const existing = isCustomScheme(state.schemeId) ? CUSTOM.find(c=>c.id===state.schemeId) : null;
+  if(existing){
+    existing.name = currentTitle().trim() || existing.name;
+    existing.phases = clonePhases(state.phases);
+    saveCustomSchemes();
+    applyStaticText();
+    renderBuilder();
+    renderAll();
+    showSavedNote();
+    return;
+  }
+
   const name = (window.prompt(t("namePrompt"), currentTitle()) || "").trim();
   if(!name) return;                              // cancelled / empty → no-op
   const id = "u-" + Date.now();
   CUSTOM.push({ id, name, phases: clonePhases(state.phases) });
+  saveCustomSchemes();
   state.schemeId = id;
   state.title = null;
   applyStaticText();                             // rebuild dropdown with the new entry
   renderBuilder(); renderAll();                  // updateSchemeActions reveals Delete
-  downloadSelf();
   showSavedNote();
 }
 function deletePreset(){
   if(!isCustomScheme(state.schemeId)) return;
   if(!window.confirm(t("confirmDelete"))) return;
   CUSTOM = CUSTOM.filter(c=>c.id!==state.schemeId);
+  saveCustomSchemes();
   state.schemeId = PRESETS[0].id;
   state.phases = clonePhases(PRESETS[0].phases);
   state.title = null;
   applyStaticText();
   renderBuilder(); renderAll();
-  downloadSelf();                                // persist the removal into a new file
   showSavedNote();
 }
 

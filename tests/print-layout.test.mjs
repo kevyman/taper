@@ -61,3 +61,11 @@ test("print footer is compact enough to share the last month page", () => {
   assert.match(declarationValue(footer, "padding"), /^1\.5mm /);
   assert.equal(declarationValue(footer, "font-size"), "10.5px");
 });
+
+test("custom schedule persistence no longer depends on embedded HTML JSON", () => {
+  assert.ok(!html.includes('id="customSchemes"'));
+  assert.match(html, /const CUSTOM_SCHEMES_KEY = "medrol-taper-custom-schemes"/);
+  assert.match(html, /localStorage\.getItem\(CUSTOM_SCHEMES_KEY\)/);
+  assert.match(html, /localStorage\.setItem\(CUSTOM_SCHEMES_KEY,/);
+  assert.ok(!html.includes("downloadSelf"));
+});
