@@ -270,6 +270,8 @@
     display:flex;gap:28px;align-items:center;flex-wrap:wrap;font-size:13.5px;color:var(--ink-soft);
   }
   .footer .mail{margin-left:auto;color:var(--accent);font-weight:700}
+  /* print-only note: hidden by default (so it never prints); @media screen shows it */
+  .footer-note{display:none}
 
   .scheme-caption{font-family:var(--font-display);font-size:18px;font-weight:600;margin:2px 0 16px;display:flex;align-items:center;gap:9px}
   .scheme-caption .tag{font-family:var(--font-body);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--accent);background:var(--accent-soft);padding:3px 9px;border-radius:20px}
@@ -376,22 +378,24 @@
      print output above is left exactly as the original (untouched). ===== -->
 <style>
 @media screen{
-  html,body{height:100%;}
-  body{height:100vh;overflow:hidden;background:#d7dce2;color:#1f2733;padding:0;}
-  /* fixed 1920x1080 stage, scaled to fit any viewport (always fits, no scroll) */
-  .stage-vp{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;overflow:hidden;}
-  .stage{width:1920px;height:1080px;flex:none;transform-origin:center center;
+  html,body{height:auto;}
+  body{min-height:100vh;overflow:auto;background:#d7dce2;color:#1f2733;padding:0;}
+  /* fluid, scrollable layout: a centred column that adapts to any viewport
+     width (laptop → wide monitor → tablet). The print output is unaffected —
+     @media print resets .stage/.stage-vp and forces transform:none. */
+  .stage-vp{display:block;min-height:100vh;}
+  .stage{width:100%;max-width:1400px;min-height:100vh;margin:0 auto;
     display:flex;flex-direction:column;background:#eef1f5;box-shadow:0 8px 40px rgba(20,30,50,.22);}
 
   /* ---- command bar ---- */
-  .appbar{display:flex;align-items:center;gap:24px;padding:10px 28px;
-    background:#fff;border-bottom:1px solid #e2e7ee;flex:none;}
+  .appbar{display:flex;align-items:center;gap:14px 24px;padding:10px 28px;flex-wrap:wrap;
+    background:#fff;border-bottom:1px solid #e2e7ee;flex:none;position:sticky;top:0;z-index:50;}
   .ab-brand{display:flex;align-items:center;gap:11px;flex:none;}
   .pilldot{width:13px;height:13px;border-radius:50%;background:#0e7c86;display:inline-block;flex:none;}
   .ab-title{display:flex;flex-direction:column;line-height:1.12;}
   .ab-title h1{font-family:var(--font-display);font-size:18px;font-weight:700;letter-spacing:-.01em;}
   .ab-title .sub{font-size:11px;color:#8b95a3;max-width:330px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .ab-controls{display:flex;align-items:flex-end;gap:14px;}
+  .ab-controls{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;}
   .field{display:flex;flex-direction:column;gap:4px;}
   .field label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#8b95a3;}
   .appbar select,.appbar input[type=date]{font-family:var(--font-body);font-size:13.5px;color:#1f2733;
@@ -403,7 +407,7 @@
     border:none;border-radius:6px;padding:5px 11px;cursor:pointer;transition:all .12s;}
   .seg button.active{background:#0e7c86;color:#fff;}
   .seg button:not(.active):hover{color:#1f2733;background:#e6ebf1;}
-  .ab-actions{margin-left:auto;display:flex;align-items:center;gap:9px;}
+  .ab-actions{margin-left:auto;display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
   .btn{font-family:var(--font-body);font-size:13px;font-weight:700;background:#fff;color:#1f2733;
     border:1px solid #d6dde6;border-radius:9px;padding:8px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:all .12s;}
   .btn:hover{border-color:#0e7c86;color:#0b5a61;}
@@ -422,6 +426,24 @@
     background:#f7f9fb;border:1px solid #d6dde6;border-radius:9px;padding:8px 10px;color:#1f2733;outline:none;resize:vertical;}
   .foot-pop textarea:focus,.foot-pop input:focus{border-color:#0e7c86;box-shadow:0 0 0 3px #d3eeee;}
 
+  /* ---- save popover (in-app naming, replaces window.prompt) ---- */
+  .save-wrap{position:relative;}
+  .save-pop{position:absolute;top:calc(100% + 8px);right:0;width:280px;background:#fff;border:1px solid #d6dde6;
+    border-radius:12px;box-shadow:0 12px 34px rgba(20,30,50,.18);padding:14px;z-index:60;}
+  .save-pop[hidden]{display:none;}
+  .save-pop h2{font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:10px;}
+  .save-pop .field{margin-bottom:10px;gap:5px;}
+  .save-pop input{width:100%;font-family:var(--font-body);font-size:13px;line-height:1.4;
+    background:#f7f9fb;border:1px solid #d6dde6;border-radius:9px;padding:8px 10px;color:#1f2733;outline:none;}
+  .save-pop input:focus{border-color:#0e7c86;box-shadow:0 0 0 3px #d3eeee;}
+  .save-pop-actions{display:flex;justify-content:flex-end;}
+
+  /* ---- undo affordance inside the toast ---- */
+  .savednote{display:flex;align-items:center;gap:12px;}
+  .toast-undo{font-family:var(--font-body);font-size:12px;font-weight:700;color:#0b5a61;
+    background:#fff;border:1px solid #b9e0dd;border-radius:8px;padding:4px 10px;cursor:pointer;flex:none;}
+  .toast-undo:hover{background:#f0fbfa;border-color:#0e7c86;}
+
   /* ---- editor ribbon ---- */
   .editorbar{flex:none;padding:9px 28px 0;}
   .eb-head{display:flex;align-items:baseline;gap:12px;margin-bottom:8px;}
@@ -431,7 +453,8 @@
   .btn.sm{padding:5px 10px;font-size:12px;}
   .btn.ghost{background:#f7f9fb;}
   .phaserow{display:flex;gap:0;align-items:stretch;background:#fff;border:1px solid #e2e7ee;
-    border-radius:12px;padding:6px;box-shadow:0 1px 2px rgba(20,30,50,.04);}
+    border-radius:12px;padding:6px;box-shadow:0 1px 2px rgba(20,30,50,.04);overflow-x:auto;}
+  .phase{min-width:118px;}
   .phases-contents{display:contents;}
 
   /* ---- phase card (compact, editable) ---- */
@@ -472,8 +495,8 @@
     background:#dff1f0;border:1px solid #b9e0dd;border-radius:10px;padding:10px 12px;box-shadow:0 10px 28px rgba(20,30,50,.16);line-height:1.4;}
 
   /* ---- calendar area ---- */
-  .wrap{flex:1;min-height:0;display:flex;flex-direction:column;max-width:none;margin:0;padding:8px 28px 14px;}
-  main{flex:1;min-height:0;display:flex;flex-direction:column;}
+  .wrap{flex:1;display:flex;flex-direction:column;max-width:none;margin:0;padding:8px 28px 18px;}
+  main{flex:1;display:flex;flex-direction:column;}
   .scheme-caption{font-family:var(--font-display);font-size:15px;font-weight:700;margin:0 0 6px;display:flex;align-items:center;gap:9px;flex:none;}
   .scheme-caption .tag{font-family:var(--font-body);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
     color:#0b5a61;background:#dff1f0;padding:3px 9px;border-radius:20px;}
@@ -485,22 +508,23 @@
   .title-reset:hover{color:#0e7c86;border-color:#0e7c86;}
   .title-reset.show{display:grid;}
 
-  /* ---- 3 sheets, 2 months each ---- */
-  .out{flex:1;min-height:0;display:flex;gap:22px;overflow:hidden;}
-  .sheet{flex:1 1 0;min-width:0;min-height:0;display:flex;opacity:0;transform:translateY(8px);animation:rise .5s ease forwards;}
-  .sheet-page{flex:1;min-width:0;min-height:0;background:#fff;border:1px solid #dfe5ec;border-radius:6px;
+  /* ---- sheets (2 months each) reflow responsively: 3-up on a wide monitor,
+     2-up mid, 1-up on a tablet — by content, no fixed-height squeeze ---- */
+  .out{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:22px;align-items:start;}
+  .sheet{min-width:0;display:flex;opacity:0;transform:translateY(8px);animation:rise .5s ease forwards;}
+  .sheet-page{flex:1;min-width:0;background:#fff;border:1px solid #dfe5ec;border-radius:6px;
     box-shadow:0 2px 6px rgba(20,30,50,.06),0 12px 28px rgba(20,30,50,.07);
-    padding:11px 12px 12px;display:flex;flex-direction:column;gap:8px;overflow:hidden;}
+    padding:11px 12px 12px;display:flex;flex-direction:column;gap:10px;}
 
   /* compact month grid (screen) */
-  .month{flex:1 1 0;min-height:0;display:flex;flex-direction:column;margin:0;background:none;border:none;
+  .month{display:flex;flex-direction:column;margin:0;background:none;border:none;
     box-shadow:none;border-radius:0;padding:0;opacity:1;transform:none;animation:none;}
   .month h3{font-family:var(--font-display);font-size:13px;font-weight:700;margin-bottom:3px;display:flex;align-items:baseline;gap:6px;text-transform:capitalize;color:#1f2733;}
   .month h3 .yr{font-size:11px;font-weight:400;color:#9aa3b1;}
   .dow{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:3px;}
   .dow span{font-size:9.5px;font-weight:700;text-align:center;color:#5a6472;}
-  .grid{display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:minmax(0,1fr);gap:3px;flex:1;min-height:0;}
-  .cell{min-height:0;border:1px solid #e7ecf2;border-radius:6px;background:#fbfcfd;padding:2px;
+  .grid{display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:minmax(78px,auto);gap:4px;}
+  .cell{min-height:78px;border:1px solid #e7ecf2;border-radius:6px;background:#fbfcfd;padding:3px;
     display:flex;flex-direction:column;align-items:center;justify-content:flex-start;position:relative;overflow:hidden;}
   .cell:not(.empty):hover{transform:none;box-shadow:none;z-index:auto;}
   .cell.empty{background:transparent;border:none;}
@@ -508,10 +532,10 @@
     padding:2px 5px;border-radius:6px 0 6px 0;line-height:1;}
   .cell.empty .dnum{background:transparent;color:#c4ccd6;}
   .chip{position:absolute;top:2px;right:2px;font-size:7px;font-weight:700;padding:1px 4px;border-radius:9px;background:#e3eaf1;color:#5a6472;}
-  .dose{display:flex;flex-direction:row;align-items:baseline;gap:2px;margin-top:5px;}
-  .cell .mg{font-family:var(--font-display);font-weight:700;font-size:15px;line-height:1;color:#1f2733;}
-  .cell .mgunit{font-size:8px;color:#8b95a3;margin:0;}
-  .pills{min-height:0;gap:1.5px;margin-top:1px;align-items:flex-end;zoom:.60;}
+  .dose{display:flex;flex-direction:row;align-items:baseline;gap:2px;margin-top:6px;}
+  .cell .mg{font-family:var(--font-display);font-weight:700;font-size:17px;line-height:1;color:#1f2733;}
+  .cell .mgunit{font-size:9px;color:#8b95a3;margin:0;}
+  .pills{min-height:0;gap:1.5px;margin-top:2px;align-items:flex-end;zoom:.68;}
   .cell.pstart{border-color:#0e7c86;box-shadow:0 0 0 1px #d3eeee;}
   .cell.altday{background:#f0f9f9;}
   .cell.altday.rest{background:#eaf3f3;}
@@ -527,10 +551,13 @@
   .rest-pill{display:none;}
   .ptag{display:none;}
 
-  /* slim on-screen footer */
-  /* on-screen footer hidden to maximise calendar room; it still prints, and is
-     edited via the Voettekst popover (a print-preview shows it on paper). */
-  .footer{display:none;}
+  /* on-screen footer — a live preview of what prints on the last page, edited
+     via the Voettekst popover. The note above it makes the print-only role clear. */
+  .footer-note{display:block;font-size:11.5px;color:#8b95a3;margin:14px 0 5px;}
+  .footer{display:flex;gap:14px 28px;flex-wrap:wrap;align-items:center;
+    background:#fff;border:1px solid #e2e7ee;border-radius:10px;padding:11px 18px;
+    font-size:14px;color:#5a6472;}
+  .footer:empty{display:none;}
   .footer .mail{margin-left:auto;color:#0b5a61;font-weight:700;}
 
   /* list view fallback */
@@ -562,17 +589,17 @@
     </div>
     <div class="field">
       <label id="lbl-lang">Taal</label>
-      <div class="seg" id="langSeg">
-        <button data-lang="nl" class="active">NL</button>
-        <button data-lang="en">EN</button>
-        <button data-lang="fr">FR</button>
+      <div class="seg" id="langSeg" role="group">
+        <button data-lang="nl" class="active" aria-pressed="true">NL</button>
+        <button data-lang="en" aria-pressed="false">EN</button>
+        <button data-lang="fr" aria-pressed="false">FR</button>
       </div>
     </div>
     <div class="field">
       <label id="lbl-view">Weergave</label>
-      <div class="seg" id="viewSeg">
-        <button data-view="grid" class="active" id="btn-grid">Kalender</button>
-        <button data-view="list" id="btn-list">Lijst</button>
+      <div class="seg" id="viewSeg" role="group">
+        <button data-view="grid" class="active" id="btn-grid" aria-pressed="true">Kalender</button>
+        <button data-view="list" id="btn-list" aria-pressed="false">Lijst</button>
       </div>
     </div>
   </div>
@@ -591,7 +618,19 @@
         </div>
       </div>
     </div>
-    <button class="btn" id="savePreset">★ <span id="lbl-save">Bewaar als schema</span></button>
+    <div class="save-wrap">
+      <button class="btn" id="savePreset">★ <span id="lbl-save">Bewaar als schema</span></button>
+      <div class="save-pop" id="savePop" hidden>
+        <h2 id="lbl-savetitle">Schema opslaan</h2>
+        <div class="field">
+          <label id="lbl-savename" for="saveName">Naam</label>
+          <input type="text" id="saveName">
+        </div>
+        <div class="save-pop-actions">
+          <button class="btn primary" id="saveConfirm" type="button">Opslaan</button>
+        </div>
+      </div>
+    </div>
     <button class="btn" id="delPreset" style="display:none"><span id="lbl-del">Verwijder schema</span></button>
     <button class="btn primary" id="printBtn">🖶 <span id="lbl-print">Afdrukken</span></button>
   </div>
@@ -622,6 +661,7 @@
       <span class="tag" id="schemeRange"></span>
     </div>
     <div class="out" id="out"></div>
+    <p class="footer-note" id="footerNote"></p>
     <section class="footer" id="legend"></section>
   </main>
 </div>
@@ -650,6 +690,8 @@ const I18N = {
     footerContactLbl:"Contact", resetTitle:"automatische titel", titleHint:"klik om de titel aan te passen",
     altLines:["Vanaf nu","om de 2","dagen"], altPrintLines:["Vanaf nu","om de 2 dagen"],
     save:"Bewaar als schema", del:"Verwijder schema",
+    undo:"Ongedaan maken", phaseRemoved:"Fase verwijderd", schemeReset:"Schema hersteld", schemeDeleted:"Schema verwijderd",
+    printNote:"Verschijnt onderaan de laatste afgedrukte pagina.", saveTitle:"Schema opslaan", saveNameLbl:"Naam", saveConfirmLbl:"Opslaan",
     namePrompt:"Naam voor dit schema:",
     savedNote:"Opgeslagen in deze browser op dit toestel.",
     confirmDelete:"Dit eigen schema definitief verwijderen?",
@@ -667,6 +709,8 @@ const I18N = {
     footerContactLbl:"Contact", resetTitle:"automatic title", titleHint:"click to edit the title",
     altLines:["From now","every 2","days"], altPrintLines:["From now","every 2 days"],
     save:"Save as schedule", del:"Delete schedule",
+    undo:"Undo", phaseRemoved:"Phase removed", schemeReset:"Schedule reset", schemeDeleted:"Schedule deleted",
+    printNote:"Appears at the bottom of the last printed page.", saveTitle:"Save schedule", saveNameLbl:"Name", saveConfirmLbl:"Save",
     namePrompt:"Name for this schedule:",
     savedNote:"Saved in this browser on this device.",
     confirmDelete:"Permanently delete this custom schedule?",
@@ -684,6 +728,8 @@ const I18N = {
     footerContactLbl:"Contact", resetTitle:"titre automatique", titleHint:"cliquez pour modifier le titre",
     altLines:["Maintenant","tous les","2 jours"], altPrintLines:["Maintenant","tous les 2 jours"],
     save:"Enregistrer le schéma", del:"Supprimer le schéma",
+    undo:"Annuler", phaseRemoved:"Phase supprimée", schemeReset:"Schéma réinitialisé", schemeDeleted:"Schéma supprimé",
+    printNote:"Apparaît en bas de la dernière page imprimée.", saveTitle:"Enregistrer le schéma", saveNameLbl:"Nom", saveConfirmLbl:"Enregistrer",
     namePrompt:"Nom de ce schéma :",
     savedNote:"Enregistré dans ce navigateur sur cet appareil.",
     confirmDelete:"Supprimer définitivement ce schéma personnalisé ?",
@@ -1029,9 +1075,9 @@ function renderBuilder(){
           <option value="alt" ${isAlt?"selected":""}>${t("alternate")}</option>
         </select>
         <span class="pc-tools">
-          <button class="iconbtn" data-act="up" data-idx="${idx}" title="${t("up")}" ${idx===0?"disabled":""}>←</button>
-          <button class="iconbtn" data-act="down" data-idx="${idx}" title="${t("down")}" ${idx===state.phases.length-1?"disabled":""}>→</button>
-          <button class="iconbtn" data-act="del" data-idx="${idx}" title="${t("removeP")}">✕</button>
+          <button class="iconbtn" data-act="up" data-idx="${idx}" title="${t("up")}" aria-label="${t("up")}" ${idx===0?"disabled":""}>←</button>
+          <button class="iconbtn" data-act="down" data-idx="${idx}" title="${t("down")}" aria-label="${t("down")}" ${idx===state.phases.length-1?"disabled":""}>→</button>
+          <button class="iconbtn" data-act="del" data-idx="${idx}" title="${t("removeP")}" aria-label="${t("removeP")}">✕</button>
         </span>
       </div>
       <div class="phase-dose">${doseBlock}<span class="pc-unit">${t("mg")}</span></div>
@@ -1079,6 +1125,7 @@ function applyStaticText(){
   document.getElementById("lbl-builder").textContent = t("builder");
   document.getElementById("lbl-builderhint").textContent = t("builderhint");
   document.getElementById("lbl-add").textContent = t("add");
+  document.getElementById("addPhase").setAttribute("aria-label", t("add"));
   document.getElementById("lbl-reset").textContent = t("reset");
   document.getElementById("lbl-foot").textContent = t("footerTitle");
   document.getElementById("lbl-foottoggle").textContent = t("footerTitle").split(" (")[0];
@@ -1090,6 +1137,12 @@ function applyStaticText(){
   document.getElementById("schemeName").title = t("titleHint");
   document.getElementById("lbl-save").textContent = t("save");
   document.getElementById("lbl-del").textContent = t("del");
+  document.getElementById("footerNote").textContent = t("printNote");
+  document.getElementById("lbl-savetitle").textContent = t("saveTitle");
+  document.getElementById("lbl-savename").textContent = t("saveNameLbl");
+  document.getElementById("saveConfirm").textContent = t("saveConfirmLbl");
+  document.getElementById("langSeg").setAttribute("aria-label", t("lang"));
+  document.getElementById("viewSeg").setAttribute("aria-label", t("view"));
   // scheme dropdown: built-in presets, then any user-saved schemes, then empty
   const sel = document.getElementById("schemeSel");
   const customOpts = CUSTOM.length
@@ -1111,18 +1164,37 @@ function save(){
 function load(){
   try{
     const s = JSON.parse(localStorage.getItem("medrol-taper"));
-    if(s && s.phases){ Object.assign(state, s); }
+    if(s && s.phases){ Object.assign(state, s); return true; }
   }catch(e){}
+  return false;
 }
 
-function showSavedNote(){
+let toastTimer = null;
+function hideToast(){
   const n = document.getElementById("savedNote");
-  n.textContent = t("savedNote");
-  n.style.display = "";
+  n.style.display = "none";
+  n.innerHTML = "";
 }
+function showToast(msg, undoFn){
+  const n = document.getElementById("savedNote");
+  clearTimeout(toastTimer);
+  n.innerHTML = `<span></span>`;
+  n.firstChild.textContent = msg;
+  if(undoFn){
+    const b = document.createElement("button");
+    b.className = "toast-undo";
+    b.type = "button";
+    b.textContent = t("undo");
+    b.addEventListener("click", ()=>{ undoFn(); hideToast(); });
+    n.appendChild(b);
+  }
+  n.style.display = "";
+  toastTimer = setTimeout(hideToast, undoFn ? 8000 : 4000);
+}
+function showSavedNote(){ showToast(t("savedNote")); }
 function saveAsPreset(){
   const existing = isCustomScheme(state.schemeId) ? CUSTOM.find(c=>c.id===state.schemeId) : null;
-  if(existing){
+  if(existing){                                  // already a saved scheme → update in place
     existing.name = currentTitle().trim() || existing.name;
     existing.phases = clonePhases(state.phases);
     saveCustomSchemes();
@@ -1132,9 +1204,11 @@ function saveAsPreset(){
     showSavedNote();
     return;
   }
-
-  const name = (window.prompt(t("namePrompt"), currentTitle()) || "").trim();
-  if(!name) return;                              // cancelled / empty → no-op
+  openSavePopover();                             // new scheme → name it in-app (no native prompt)
+}
+function commitNewScheme(name){
+  name = (name || "").trim();
+  if(!name) return false;
   const id = "u-" + Date.now();
   CUSTOM.push({ id, name, phases: clonePhases(state.phases) });
   saveCustomSchemes();
@@ -1143,10 +1217,12 @@ function saveAsPreset(){
   applyStaticText();                             // rebuild dropdown with the new entry
   renderBuilder(); renderAll();                  // updateSchemeActions reveals Delete
   showSavedNote();
+  return true;
 }
 function deletePreset(){
   if(!isCustomScheme(state.schemeId)) return;
-  if(!window.confirm(t("confirmDelete"))) return;
+  const removed = CUSTOM.find(c=>c.id===state.schemeId);
+  const snapId = state.schemeId, snapPhases = clonePhases(state.phases), snapTitle = state.title;
   CUSTOM = CUSTOM.filter(c=>c.id!==state.schemeId);
   saveCustomSchemes();
   state.schemeId = PRESETS[0].id;
@@ -1154,10 +1230,29 @@ function deletePreset(){
   state.title = null;
   applyStaticText();
   renderBuilder(); renderAll();
-  showSavedNote();
+  showToast(t("schemeDeleted"), ()=>{           // undo: restore the deleted scheme + selection
+    if(removed && !isCustomScheme(removed.id)) CUSTOM.push(removed);
+    saveCustomSchemes();
+    state.schemeId = snapId; state.phases = snapPhases; state.title = snapTitle;
+    applyStaticText(); renderBuilder(); renderAll();
+  });
+}
+function openSavePopover(){
+  const pop = document.getElementById("savePop");
+  const input = document.getElementById("saveName");
+  input.value = currentTitle();
+  pop.hidden = false;
+  input.focus(); input.select();
 }
 
 /* ---------- events ---------- */
+function setSegState(sel, isOn){
+  document.querySelectorAll(sel+" button").forEach(x=>{
+    const on = isOn(x);
+    x.classList.toggle("active", on);
+    x.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+}
 function wire(){
   document.getElementById("schemeSel").addEventListener("change", e=>{
     state.schemeId = e.target.value;
@@ -1196,14 +1291,14 @@ function wire(){
   document.getElementById("langSeg").addEventListener("click", e=>{
     const b = e.target.closest("button[data-lang]"); if(!b) return;
     state.lang = b.dataset.lang;
-    document.querySelectorAll("#langSeg button").forEach(x=>x.classList.toggle("active", x===b));
+    setSegState("#langSeg", x=>x===b);
     applyStaticText(); renderBuilder(); renderAll();
   });
 
   document.getElementById("viewSeg").addEventListener("click", e=>{
     const b = e.target.closest("button[data-view]"); if(!b) return;
     state.view = b.dataset.view;
-    document.querySelectorAll("#viewSeg button").forEach(x=>x.classList.toggle("active", x===b));
+    setSegState("#viewSeg", x=>x===b);
     renderAll();
   });
 
@@ -1218,8 +1313,11 @@ function wire(){
     footToggle.classList.toggle("on", !footPop.hidden);
   });
   footPop.addEventListener("click", e=>e.stopPropagation());
+  const savePop = document.getElementById("savePop");
+  savePop.addEventListener("click", e=>e.stopPropagation());
   document.addEventListener("click", ()=>{
     if(!footPop.hidden){ footPop.hidden = true; footToggle.classList.remove("on"); }
+    if(!savePop.hidden) savePop.hidden = true;
   });
 
   document.getElementById("addPhase").addEventListener("click", ()=>{
@@ -1229,10 +1327,24 @@ function wire(){
   });
   document.getElementById("resetScheme").addEventListener("click", ()=>{
     const p = findScheme(state.schemeId);
-    if(p){ state.phases = clonePhases(p.phases); renderBuilder(); renderAll(); }
+    if(!p) return;
+    const snap = clonePhases(state.phases);
+    state.phases = clonePhases(p.phases); renderBuilder(); renderAll();
+    showToast(t("schemeReset"), ()=>{ state.phases = snap; renderBuilder(); renderAll(); });
   });
 
-  document.getElementById("savePreset").addEventListener("click", saveAsPreset);
+  document.getElementById("savePreset").addEventListener("click", e=>{
+    e.stopPropagation();
+    if(!footPop.hidden){ footPop.hidden = true; footToggle.classList.remove("on"); }
+    saveAsPreset();                              // existing custom → save in place; new → opens savePop
+  });
+  document.getElementById("saveConfirm").addEventListener("click", ()=>{
+    if(commitNewScheme(document.getElementById("saveName").value)) savePop.hidden = true;
+  });
+  document.getElementById("saveName").addEventListener("keydown", e=>{
+    if(e.key==="Enter"){ e.preventDefault(); document.getElementById("saveConfirm").click(); }
+    else if(e.key==="Escape"){ savePop.hidden = true; }
+  });
   document.getElementById("delPreset").addEventListener("click", deletePreset);
 
   // builder delegation
@@ -1257,7 +1369,13 @@ function wire(){
     const b = e.target.closest("button[data-act]"); if(!b) return;
     const act = b.dataset.act, idx = +b.dataset.idx;
     markCustom();
-    if(act==="del" && state.phases.length>1){ state.phases.splice(idx,1); }
+    if(act==="del" && state.phases.length>1){
+      const snap = clonePhases(state.phases);
+      state.phases.splice(idx,1);
+      renderBuilder(); renderAll();
+      showToast(t("phaseRemoved"), ()=>{ state.phases = snap; renderBuilder(); renderAll(); });
+      return;
+    }
     else if(act==="up" && idx>0){ [state.phases[idx-1],state.phases[idx]]=[state.phases[idx],state.phases[idx-1]]; }
     else if(act==="down" && idx<state.phases.length-1){ [state.phases[idx+1],state.phases[idx]]=[state.phases[idx],state.phases[idx+1]]; }
     else return;
@@ -1269,23 +1387,17 @@ function markCustom(){
   // editing keeps the named scheme but the user may diverge; leave schemeId as-is for the caption.
 }
 
-/* ---------- fit the 1920x1080 stage to the viewport (screen only) ---------- */
-function fitStage(){
-  const st = document.getElementById("stage");
-  if(!st) return;
-  const s = Math.min(window.innerWidth/1920, window.innerHeight/1080);
-  st.style.transform = "scale("+s+")";
-}
-window.addEventListener("resize", fitStage);
-
 /* ---------- init ---------- */
 function init(){
-  load();
-  fitStage();
+  const restored = load();
+  if(!restored){
+    // first visit: honour the browser's language if it's one we support
+    const l = (navigator.language || "").slice(0,2).toLowerCase();
+    if(l==="en" || l==="fr") state.lang = l;
+  }
   document.getElementById("startDate").value = state.start;
-  // restore lang/view button states
-  document.querySelectorAll("#langSeg button").forEach(x=>x.classList.toggle("active", x.dataset.lang===state.lang));
-  document.querySelectorAll("#viewSeg button").forEach(x=>x.classList.toggle("active", x.dataset.view===state.view));
+  setSegState("#langSeg", x=>x.dataset.lang===state.lang);
+  setSegState("#viewSeg", x=>x.dataset.view===state.view);
   applyStaticText();
   renderBuilder();
   renderAll();

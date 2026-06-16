@@ -34,9 +34,10 @@ printer works.
 ### Saving your own schedules
 
 The built-in schedules cover the common tapers. To keep a custom one, build it
-in the editor and click **★ Save as schedule** — your browser downloads an
-updated copy of `medrol-taper.html` with that schedule baked in. Replace your
-file with the download (or share it with colleagues) to keep it.
+in the editor, give it a name and click **★ Save as schedule** — it's stored in
+your browser on this device and appears in the schedule dropdown next time.
+Saved schedules stay on the same browser/device; they aren't shared across
+browsers, devices or with colleagues.
 
 ## For developers
 
